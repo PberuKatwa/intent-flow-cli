@@ -246,32 +246,3 @@ Contributions are welcome! Please follow these guidelines:
 3. Add tests for new functionality
 4. Ensure all tests pass
 5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Author
-
-Your Name / Organization
-
-## Acknowledgments
-
-Built with TypeScript and Node.js for fast, reliable intent classification without external dependencies.
-
-## Support
-
-- Issues: GitHub Issues
-- Discussions: GitHub Discussions
-- Documentation: See docs/ folder
-
-## Roadmap
-
-- Multi-language support
-- Confidence calibration tools
-- Intent definition validator
-- Performance benchmarks
-- Training data export for ML transition
-- REST API wrapper
-- Docker container
-- Interactive tuning interface
