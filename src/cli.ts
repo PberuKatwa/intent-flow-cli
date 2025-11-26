@@ -1,47 +1,100 @@
-import * as readline from 'readline'
-import { logger } from './utils/logger'
-import allIntents from './services/intent.definition'
-import { detectIntent } from './services/intent.service'
+import * as readline from 'readline';
+import { logger } from './utils/logger'; // Assuming logger is available
+import allIntents from './services/intent.definition'; // Assuming this imports an array of intent objects
+import { detectIntent } from './services/intent.service'; // Assuming detectIntent is an asynchronous service
 
-function startCli():void{
+// --- Constants and Messages ---
+const CLI_NAME = `INTENT FLOW CLI`;
+const PROMPT_MESSAGE = `\nEnter your message > `;
+const EXIT_COMMAND = 'exit';
 
-    const rl = readline.createInterface({
-        input:process.stdin,
-        output:process.stdout
-    })
+// --- Main CLI Class ---
+class CLI {
+    
+    private readonly rl: readline.Interface;
 
-    logger.info(`=== WELCOME TO INTENT FLOW CLI ===`)
-    console.log(`Available intents:`)
-
-    allIntents.map(
-        function(intent){
-            return console.log(`${intent.id}:${intent.label}`)
-        }
-    )
-
-    console.log(`\nEnter text to get intent ( or "exit" or  ctrl +c to quit)`)
-
-    rl.on( 'line', function (input:string) {
-
-        const message = input.trim()
-
-        if( message.toLowerCase() === 'exit' ){
-            console.log(`CLI EXITED!!`); 
-            rl.close(); 
-            return;
-        } 
-
-        const result = detectIntent( allIntents, message )
-
-        console.log(`Intent Flow Result:`, JSON.stringify(result, null, 2) ) 
-
-        rl.on('close', () => {
-            process.exit(0);
+    constructor() {
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            // Makes the prompt visible and keeps the interface active
+            prompt: PROMPT_MESSAGE 
         });
 
-    })
+        // Set up event listeners
+        this.rl.on('line', this.handleInput.bind(this));
+        this.rl.on('close', this.handleExit.bind(this));
+    }
 
+    /**
+     * @function displayWelcome - Shows the welcome message and available intents.
+     */
+    public displayWelcome(): void {
+        logger.info(`\n\n================================`);
+        logger.info(`  WELCOME TO ${CLI_NAME}   `);
+        logger.info(`================================\n`);
+        
+        console.log(`\n-- Available Intents --`);
+        allIntents.forEach(intent => {
+            console.log(`  - ${intent.id}: ${intent.label}`);
+        });
+
+        console.log(`\n( Type "${EXIT_COMMAND}" or press Ctrl+C to quit )\n`);
+        this.rl.prompt(); // Show the initial prompt
+    }
+
+    /**
+     * @function handleInput - Processes the user's input line by line.
+     */
+    private async handleInput(input: string): Promise<void> {
+        const message = input.trim();
+
+        if (message.toLowerCase() === EXIT_COMMAND) {
+            this.rl.close();
+            return;
+        }
+
+        if (!message) {
+            this.rl.prompt(); // Re-prompt if input is empty
+            return;
+        }
+
+        try {
+            // Processing user input with asynchronous intent detection
+            const result =  detectIntent(allIntents, message);
+
+            console.log(`\n[RESULT] Intent Flow Detection:`);
+            console.log(JSON.stringify(result, null, 2));
+            console.log(`\n---------------------------------`);
+
+        } catch (error: any) {
+            // Robust error handling and feedback
+            logger.error(`\n[ERROR] Failed to detect intent: ${error.message}`);
+            if (error.stack) {
+                console.error(error.stack);
+            }
+            console.log(`\n---------------------------------`);
+        }
+        
+        this.rl.prompt(); // Show the prompt again after processing
+    }
+
+    /**
+     * @function handleExit - Cleans up and exits the process.
+     */
+    private handleExit(): void {
+        logger.info(`\n\nCLI EXITED. Session terminated.`); 
+        process.exit(0);
+    }
+
+    /**
+     * @function start - Starts the main CLI loop.
+     */
+    public start(): void {
+        this.displayWelcome();
+    }
 }
 
-startCli()
-
+// --- Start the CLI ---
+const cli = new CLI();
+cli.start();
