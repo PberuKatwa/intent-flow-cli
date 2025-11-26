@@ -1,46 +1,277 @@
-IntentFlow CLI 🌊A lightweight, zero-dependency heuristic NLP engine for mapping text to intents using weighted scoring.IntentFlow is a TypeScript-based intent recognition tool. It avoids the "black box" of Machine Learning in favor of a transparent, rule-based approach. It uses a combination of Phrase Regexes (strong signals) and Stemmed Tokens (weak signals) to calculate a confidence score and determine the user's intent.🚀 FeaturesDeterministic: No "hallucinations." If the rules match, the intent is found.Weighted Scoring: Prioritizes exact phrases over loose keywords.Ambiguity Handling: Returns UNKNOWN if the top score doesn't beat the runner-up by a defined margin.Blazing Fast: No heavy ML models to load; just pure string manipulation and math.TypeScript: Type-safe and easily extensible.📦 InstallationBash# Clone the repository
-git clone https://github.com/your-username/intent-flow-cli.git
+# Intent Detection Engine
 
-# Install dependencies
+A lightweight, pattern-based NLP intent classification engine for Node.js and TypeScript. Classify user input into predefined intents using regex patterns and token matching without external API dependencies.
+
+## Overview
+
+This CLI tool analyzes natural language text and returns structured intent classifications with confidence scores. It uses a hybrid approach combining phrase-level regex matching with token-based scoring to achieve accurate intent detection for common use cases like order management, customer service routing, and conversational interfaces.
+
+## Features
+
+- **Hybrid Matching**: Combines phrase regex patterns (high weight) with individual token matching (lower weight)
+- **Confidence Scoring**: Configurable thresholds ensure reliable classification with margin validation
+- **Stemming Support**: Basic stemming improves token matching across word variations
+- **Zero Dependencies**: No external NLP APIs or trained models required
+- **Extensible**: Easy to add new intents, patterns, and tokens through simple configuration
+- **Detailed Output**: Returns intent ID, label, confidence score, and matched patterns/tokens
+- **Ambiguity Handling**: Returns "unknown" intent when confidence is insufficient
+
+## Installation
+
+```bash
+npm install -g intent-flow-cli
+```
+
+Or for local development:
+
+```bash
+git clone https://github.com/yourusername/intent-flow-cli.git
+cd intent-flow-cli
 npm install
-
-# Build the project
 npm run build
-💻 UsageCLI ModeYou can run the engine directly from the terminal to test phrases.Bashnpm start -- "where is my order?"
-Output:JSON{
-  "intent": 2,
-  "label": "track",
-  "score": 4,
-  "details": {
-    "phrases": ["where is my order"],
-    "tokens": ["where", "order"]
-  }
-}
-Programmatic UsageImport the service into your own backend or bot logic.TypeScriptimport { detectIntent, IntentType } from './services/intent.service';
+```
 
-const userInput = "I want to pay for my flowers";
-const result = detectIntent(userInput);
+## Usage
 
-if (result.intent === IntentType.PAY) {
-    // Execute payment logic
-    console.log("Initiating payment protocol...");
-} else {
-    console.log("Sorry, I didn't understand.");
-}
-🧠 How It WorksThe engine uses a point-based system to "compete" for the best intent:Normalization: The input is lowercased, and special characters are removed.Phrase Matching (Weight: 3): The engine checks against defined Regex patterns (e.g., /where is my order/). These are high-value matches.Token Matching (Weight: 1): The engine splits the text into words and "stems" them (removes 'ing', 'ed', etc.). It looks for keywords like pay, track, or buy.Multi-Hit Bonus: If a sentence hits multiple distinct tokens for a single intent, it gets a bonus point.Confidence Check:The score must be $\ge 3$ (MIN_CONFIDENCE).The winning score must beat the second-best score by at least $2$ points (MIN_MARGIN).⚙️ ConfigurationYou can customize the intents in services/intent.service.ts.TypeScriptexport enum IntentType {
-  UNKNOWN = 0,
-  MAKE = 1,
-  TRACK = 2,
-  PAY = 3,
-  // Add new ID here
-  CANCEL = 4
-}
+### CLI
 
-// Add the definition
+```bash
+# Basic usage
+intent-flow "where is my order"
+
+# Output:
+# Intent: track (ID: 2)
+# Score: 6
+# Matched phrases: where is my order
+# Matched tokens: where, order
+
+# Check multiple inputs
+intent-flow "I want to buy flowers"
+intent-flow "how much do I owe"
+intent-flow "hello there"  # Returns unknown
+```
+
+### Programmatic Usage
+
+```typescript
+import { detectIntent, IntentType } from './services/intent.service';
+
+const result = detectIntent("where is my order");
+
+console.log(result);
+// {
+//   intent: 2,
+//   label: "track",
+//   score: 6,
+//   details: {
+//     phrases: ["where is my order"],
+//     tokens: ["track", "where", "order"]
+//   }
+// }
+
+if (result.intent === IntentType.TRACK) {
+  // Handle order tracking
+}
+```
+
+## Intent Types
+
+The default configuration includes:
+
+- **MAKE** (1): Order creation, purchasing, booking
+- **TRACK** (2): Order status, delivery tracking, location queries
+- **PAY** (3): Payment processing, pricing, billing
+- **UNKNOWN** (0): Fallback for unclassified input
+
+## Configuration
+
+### Adding New Intents
+
+Edit the `INTENTS` array in `services/intent.service.ts`:
+
+```typescript
 {
   id: IntentType.CANCEL,
   label: "cancel",
-  phraseRegexes: [ /\b(cancel my order|stop delivery)\b/ ],
-  tokens: [ "cancel", "stop", "void" ]
+  phraseRegexes: [
+    /\b(cancel my order|cancel order)\b/,
+    /\b(i want to cancel)\b/,
+  ],
+  tokens: [
+    "cancel",
+    "stop",
+    "refund",
+    "undo",
+  ],
 }
-🤝 ContributingPull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+```
+
+### Tuning Parameters
+
+Adjust these constants in `intent.service.ts`:
+
+```typescript
+const PHRASE_WEIGHT = 3;           // Weight for phrase regex matches
+const TOKEN_WEIGHT = 1;            // Weight for individual token matches
+const TOKEN_MULTI_HIT_BONUS = 1;   // Bonus for multiple token matches
+const MIN_CONFIDENCE = 3;          // Minimum score to accept intent
+const MIN_MARGIN = 2;              // Required score difference from runner-up
+```
+
+## How It Works
+
+1. **Normalization**: Input text is lowercased, stripped of special characters, and whitespace-normalized
+2. **Stemming**: Words are stemmed to remove common endings (ing, ed, ly, es, s)
+3. **Phrase Matching**: Regex patterns are tested against normalized input (weight: 3 per match)
+4. **Token Matching**: Individual tokens are matched against stemmed words (weight: 1 per match)
+5. **Multi-Token Bonus**: Extra point awarded when 2+ distinct tokens match
+6. **Validation**: Top intent must meet minimum confidence and beat runner-up by minimum margin
+7. **Result**: Returns intent ID, label, score, and matched patterns/tokens
+
+## Examples
+
+| Input | Detected Intent | Score | Reasoning |
+|-------|----------------|-------|-----------|
+| "where is my order" | TRACK | 6 | Phrase match + tokens |
+| "I want to buy flowers" | MAKE | 4 | Phrase match + token |
+| "how much do I owe" | PAY | 3 | Phrase match |
+| "hello" | UNKNOWN | 0 | No matches |
+| "order flowers for delivery" | MAKE | 5 | Multiple token matches + bonus |
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Build
+npm run build
+
+# Run locally
+npm start "your test message"
+
+# Watch mode
+npm run dev
+```
+
+## Project Structure
+
+```
+intent-flow-cli/
+├── src/
+│   ├── services/
+│   │   └── intent.service.ts    # Core intent detection logic
+│   ├── cli.ts                    # CLI entry point
+│   └── index.ts                  # Programmatic API export
+├── tests/
+│   └── intent.service.test.ts
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+## Testing
+
+The engine includes a test suite covering:
+
+- Phrase regex matching
+- Token-based matching
+- Confidence thresholds
+- Margin validation
+- Ambiguous input handling
+- Edge cases
+
+```bash
+npm test
+```
+
+## Use Cases
+
+- Customer service chatbots
+- Order management systems
+- Voice assistant command routing
+- Form intent classification
+- FAQ routing
+- Support ticket categorization
+- Conversational UI navigation
+
+## Limitations
+
+- Pattern-based approach requires manual rule configuration
+- Does not handle complex semantic understanding
+- Limited to predefined intent categories
+- Basic stemming may miss some word variations
+- No context awareness across multiple messages
+
+## Extending the Engine
+
+### Adding Synonyms
+
+Expand token arrays with domain-specific vocabulary:
+
+```typescript
+tokens: [
+  "track",
+  "locate",    // synonym
+  "find",      // synonym
+  "monitor",   // synonym
+]
+```
+
+### Domain Adaptation
+
+Replace the default e-commerce intents with your domain:
+
+```typescript
+// Customer support domain
+IntentType.TECHNICAL_ISSUE
+IntentType.BILLING_QUESTION
+IntentType.FEATURE_REQUEST
+IntentType.ACCOUNT_MANAGEMENT
+```
+
+### Multi-Language Support
+
+Create separate intent definitions per language or use translation preprocessing.
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Author
+
+Your Name / Organization
+
+## Acknowledgments
+
+Built with TypeScript and Node.js for fast, reliable intent classification without external dependencies.
+
+## Support
+
+- Issues: GitHub Issues
+- Discussions: GitHub Discussions
+- Documentation: See docs/ folder
+
+## Roadmap
+
+- Multi-language support
+- Confidence calibration tools
+- Intent definition validator
+- Performance benchmarks
+- Training data export for ML transition
+- REST API wrapper
+- Docker container
+- Interactive tuning interface
