@@ -1,41 +1,45 @@
 import * as readline from 'readline'
+import { logger } from './utils/logger'
+import allIntents from './services/intent.definition'
+import { detectIntent } from './services/intent.service'
 
-function startCli(){
+function startCli():void{
+
+    const rl = readline.createInterface({
+        input:process.stdin,
+        output:process.stdout
+    })
+
+    logger.info(`=== WELCOME TO INTENT FLOW CLI ===`)
+    console.log(`Available intents:`)
+
+    allIntents.map(
+        function(intent){
+            return console.log(`${intent.id}:${intent.label}`)
+        }
+    )
+
+    console.log(`\nEnter text to get intent ( or "exit" or  ctrl +c to quit)`)
+
+    rl.on( 'line', function (input:string) {
+
+        const message = input.trim()
+
+        if( message.toLowerCase() === 'exit' ){
+            console.log(`CLI EXITED!!`); 
+            rl.close(); 
+            return;
+        } 
+
+        const result = detectIntent( allIntents, message )
+
+        console.log(`Intent Flow Result ${result}`)
+
+        rl.on('close', () => {
+            process.exit(0);
+        });
+
+    })
 
 }
 
-
-// // CLI Interface
-// function startCLI(): void {
-//   const rl = readline.createInterface({
-//     input: process.stdin,
-//     output: process.stdout
-//   });
-
-//   console.log('=== NLP Intent Classifier ===');
-//   console.log('Available intents:');
-//   intentMap.forEach((intent, id) => {
-//     if (id !== 4) {
-//       console.log(`  ${id}. ${intent.name}`);
-//     }
-//   });
-//   console.log('\nType your query (or "exit" to quit):\n');
-
-//   rl.on('line', (input: string) => {
-//     if (input.toLowerCase() === 'exit') {
-//       console.log('Goodbye!');
-//       rl.close();
-//       return;
-//     }
-
-//     const intentId = classifyIntent(input);
-//     const intent = intentMap.get(intentId);
-    
-//     console.log(`\n→ Input: "${input}"`);
-//     console.log(`→ Classified Intent: ${intentId} (${intent?.name})\n`);
-//   });
-
-//   rl.on('close', () => {
-//     process.exit(0);
-//   });
-// }

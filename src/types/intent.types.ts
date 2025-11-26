@@ -10,3 +10,4 @@ export type IntentDefinition = {
     label:string;
     phrases:Array < string >;
 }
+

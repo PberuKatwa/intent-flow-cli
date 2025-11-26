@@ -1,12 +1,16 @@
 import { IntentDefinition, IntentType } from "../types/intent.types";
 import { logger } from "../utils/logger";
 
-export function detectIntent( allIntents:Array<IntentDefinition>, message:string ){
+export function detectIntent( intents:Array<IntentDefinition>, message:string ):{
+    intent:number;
+    label:string;
+    matchedPhrase:string;
+}{
     try{
 
         const text = message.toLowerCase().trim()
 
-        for(const intent of allIntents){
+        for(const intent of intents){
 
             for(const phrase of intent.phrases){
 
@@ -14,7 +18,7 @@ export function detectIntent( allIntents:Array<IntentDefinition>, message:string
                     return{
                         intent:intent.id,
                         label:intent.label,
-                        matchedPhrases:phrase
+                        matchedPhrase:phrase
                     }
                 }
 
@@ -25,7 +29,7 @@ export function detectIntent( allIntents:Array<IntentDefinition>, message:string
         return{
             intent:IntentType.UNKNOWN,
             label:'UNKNOWN',
-            phrase:'UNKNOWN'
+            matchedPhrase:'UNKNOWN'
         }
 
     }catch(error:any){
@@ -34,6 +38,12 @@ export function detectIntent( allIntents:Array<IntentDefinition>, message:string
             errorMessage:error.message,
             errorStack:error.stack
         })
+
+        return {
+            intent: IntentType.UNKNOWN,
+            label: 'UNKNOWN',
+            matchedPhrase: 'UNKNOWN',
+        };
 
     }
 
