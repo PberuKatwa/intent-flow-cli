@@ -33,7 +33,7 @@ function startCli():void{
 
         const result = detectIntent( allIntents, message )
 
-        console.log(`Intent Flow Result ${result}`)
+        console.log(`Intent Flow Result:`, JSON.stringify(result, null, 2) ) 
 
         rl.on('close', () => {
             process.exit(0);
@@ -42,4 +42,6 @@ function startCli():void{
     })
 
 }
+
+startCli()
 

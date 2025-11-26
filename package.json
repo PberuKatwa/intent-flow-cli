@@ -4,7 +4,8 @@
   "description": "A lightweight, pattern-based NLP intent classification engine for Node.js and TypeScript. Classify user input into predefined intents using regex patterns and token matching without external API dependencies.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node src/cli.ts"
   },
   "repository": {
     "type": "git",
