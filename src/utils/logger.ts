@@ -1,5 +1,4 @@
 import winston, { Logger, LoggerOptions } from "winston";
-import { Request, Response } from "express";
 
 // 1. Define custom log levels
 const customLevels = {
@@ -53,26 +52,7 @@ const loggerOptions: LoggerOptions = {
   ],
 };
 
-// 5. Create logger
+// 5. Create l0ogger
 const baseLogger = winston.createLogger(loggerOptions) as AppLogger;
-
-// 5. Logger for the start of an api request.
-baseLogger.logAPIStart = function (req: Request) {
-  this.httpreq("Request initiated", {
-    method: req.method,
-    url: req.originalUrl,
-    timestamp: new Date().toISOString(),
-  });
-};
-
-// 7. Custom API request logger using HTTPREQ level
-baseLogger.logAPIRequest = function (req, res, duration) {
-  this.httpreq("Request completed", {
-    method: req.method,
-    url: req.originalUrl,
-    duration:`${duration} ms`,
-    statusCode: res.statusCode,
-  });
-};
 
 export const logger = baseLogger;
