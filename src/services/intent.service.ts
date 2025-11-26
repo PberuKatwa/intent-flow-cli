@@ -62,6 +62,12 @@ export function detectIntent(message:string){
 
         }
 
+        return {
+            intent:IntentType.UNKNOWN,
+            label:`unknown`,
+            matchedPhrase:`None`
+        }
+
     }catch(error:any){
 
         logger.error(`Error In detecting intent`, {
