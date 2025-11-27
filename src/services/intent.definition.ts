@@ -13,6 +13,9 @@ const allIntents:Array<IntentDefinition> = [
             "i want to order",
             "i would like to order",
             "buy flowers"
+        ],
+        tokens: [
+            "order", "buy", "purchase", "send", "place", "checkout", "book", "reserve"
         ]
     },
     {
@@ -23,6 +26,9 @@ const allIntents:Array<IntentDefinition> = [
             "track my order",
             "order status",
             "has my order arrived",
+        ],
+        tokens: [
+            "track", "tracking", "status", "where", "location", "arrive", "delivered", "delivery", "check", "update"
         ]
     },
     {
@@ -33,6 +39,9 @@ const allIntents:Array<IntentDefinition> = [
             "what do i need to pay",
             "payment due",
             "balance due",
+        ],
+        tokens: [
+            "pay", "payment", "price", "cost", "amount", "balance", "charge", "fee", "bill", "checkout", "due"
         ]
     }
 
