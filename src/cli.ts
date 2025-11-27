@@ -10,7 +10,7 @@ const EXIT_COMMAND = 'exit';
 
 // --- Main CLI Class ---
 class CLI {
-    
+
     private readonly rl: readline.Interface;
 
     constructor() {
@@ -30,9 +30,9 @@ class CLI {
      * @function displayWelcome - Shows the welcome message and available intents.
      */
     public displayWelcome(): void {
-        logger.info(`\n\n================================`);
-        logger.info(`  WELCOME TO ${CLI_NAME}   `);
-        logger.info(`================================\n`);
+        console.log(`\n\n================================`);
+        console.log(`  WELCOME TO ${CLI_NAME}   `);
+        console.log(`================================\n`);
         
         console.log(`\n-- Available Intents --`);
         allIntents.forEach(intent => {
