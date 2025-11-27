@@ -1,50 +1,72 @@
+import { tokenize } from "./intent.tokenizer";
 import { IntentDefinition, IntentType } from "../types/intent.types";
-import { logger } from "../utils/logger";
 
-export function detectIntent( intents:Array<IntentDefinition>, message:string ):{
-    intent:number;
-    label:string;
-    matchedPhrase:string;
-}{
-    try{
+const PHRASE_SCORE = 5;
+const TOKEN_SCORE = 1;
+const MULTI_TOKEN_BONUS = 2;
+const MIN_ACCEPT_SCORE = 3; // below this → UNKNOWN
 
-        const text = message.toLowerCase().trim()
+export function detectIntent(
+  intents: Array<IntentDefinition>,
+  message: string
+) {
+  const text = message.toLowerCase().trim();
+  const tokens = tokenize(text);
 
-        for(const intent of intents){
+  // Track scores
+  let bestIntent = IntentType.UNKNOWN;
+  let bestScore = 0;
+  let bestPhrase = "UNKNOWN";
 
-            for(const phrase of intent.phrases){
+  for (const intent of intents) {
+    let score = 0;
 
-                if( text.includes(phrase) ){
-                    return{
-                        intent:intent.id,
-                        label:intent.label,
-                        matchedPhrase:phrase
-                    }
-                }
-
-            }
-
-        }
-
-        return{
-            intent:IntentType.UNKNOWN,
-            label:'UNKNOWN',
-            matchedPhrase:'UNKNOWN'
-        }
-
-    }catch(error:any){
-
-        logger.error(`Error in detecting intent`,{
-            errorMessage:error.message,
-            errorStack:error.stack
-        })
-
-        return {
-            intent: IntentType.UNKNOWN,
-            label: 'UNKNOWN',
-            matchedPhrase: 'UNKNOWN',
-        };
-
+    // 1. Phrase matching (exact)
+    for (const phrase of intent.phrases) {
+      if (text.includes(phrase)) {
+        score += PHRASE_SCORE;
+        bestPhrase = phrase;
+      }
     }
 
+    // 2. Token scoring
+    let tokenHits = 0;
+    for (const token of intent.tokens || []) {
+      if (tokens.includes(token)) {
+        score += TOKEN_SCORE;
+        tokenHits++;
+      }
+    }
+
+    // 3. Multi-token bonus
+    if (tokenHits >= 2) {
+      score += MULTI_TOKEN_BONUS;
+    }
+
+    // Track the best-scoring intent
+    if (score > bestScore) {
+      bestScore = score;
+      bestIntent = intent.id;
+    }
+  }
+
+  // 4. Threshold: reject weak matches
+  if (bestScore < MIN_ACCEPT_SCORE) {
+    return {
+      intent: IntentType.UNKNOWN,
+      label: "UNKNOWN",
+      score: bestScore,
+      matchedPhrase: bestPhrase
+    };
+  }
+
+  // Find final label
+  const finalIntent = intents.find(i => i.id === bestIntent)!;
+
+  return {
+    intent: finalIntent.id,
+    label: finalIntent.label,
+    score: bestScore,
+    matchedPhrase: bestPhrase
+  };
 }
