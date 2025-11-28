@@ -68,6 +68,8 @@ class CLI {
             const fullIntent = loadIntentsFromFile(defaultPath)
             // Processing user input with asynchronous intent detection
             const result =  detectIntent(fullIntent, message);
+            // const result =  detectMultipleIntents(fullIntent, message, 3)
+
 
             console.log(`\n[RESULT] Intent Flow Detection:`);
             console.log(JSON.stringify(result, null, 2));
