@@ -15,8 +15,6 @@ export function detectIntent(
   const text = message.toLowerCase().trim();
   const tokens = tokenize(text);
 
-  // console.log("\n tokens extracted", tokens, "text", text )
-
   // Track scores
   let bestIntent = IntentType.UNKNOWN;
   let bestScore = 0;
@@ -38,11 +36,10 @@ export function detectIntent(
     let strongTokenHits = 0;
     for (const token of intent.strongTokens || []) {
       if (tokens.includes(token)) {
-        // console.log(`\n STRONG TOKEN:${token} , INTENT:${intent.label}` )
 
         score += STRONG_TOKEN_SCORE;
-
         strongTokenHits++;
+
       }
     }
 
@@ -51,20 +48,12 @@ export function detectIntent(
     for (const token of intent.weakTokens || []) {
 
       if (tokens.includes(token)) {
-        // console.log(`WEAK TOKEN:${token} , INTENT:${intent.label}` )
 
         score += WEAK_TOKEN_SCORE;       
         weakTokenHits++;
+
       }
     }
-
-    // // 3. Multi-token bonus
-
-    // if (tokenHits >= 2) {
-    //   score += MULTI_TOKEN_BONUS;
-    // }
-
-    // console.log(`BESTT intent:${bestIntentLabel}, best score:${bestScore}`)
 
     // Track the best-scoring intent
     if (score > bestScore) {

@@ -1,7 +1,7 @@
 import * as readline from 'readline';
 import { logger } from './utils/logger'; // Assuming logger is available
 import allIntents from './services/intent.definition'; // Assuming this imports an array of intent objects
-import { detectIntent } from './services/intent.service'; // Assuming detectIntent is an asynchronous service
+import { detectIntent } from './services/intent.matcher'; // Assuming detectIntent is an asynchronous service
 
 // --- Constants and Messages ---
 const CLI_NAME = `INTENT FLOW CLI`;
