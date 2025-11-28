@@ -10,7 +10,7 @@
         "i would like to order",
         "buy flowers"
       ],
-      "tokens": [
+      "strongTokens": [
         "order",
         "buy",
         "purchase",
@@ -19,6 +19,18 @@
         "checkout",
         "book",
         "reserve"
+      ],
+      "weakTokens": [
+        "want",
+        "like",
+        "need",
+        "get",
+        "give",
+        "take",
+        "flower",
+        "flowers",
+        "arrangement",
+        "bouquet"
       ]
     },
     {
@@ -30,7 +42,7 @@
         "order status",
         "has my order arrived"
       ],
-      "tokens": [
+      "strongTokens": [
         "track",
         "tracking",
         "status",
@@ -42,6 +54,19 @@
         "delivery",
         "check",
         "update"
+      ],
+      "weakTokens": [
+        "my",
+        "me",
+        "find",
+        "locate",
+        "position",
+        "when",
+        "time",
+        "coming",
+        "soon",
+        "package",
+        "parcel"
       ]
     },
     {
@@ -53,7 +78,7 @@
         "payment due",
         "balance due"
       ],
-      "tokens": [
+      "strongTokens": [
         "pay",
         "payment",
         "price",
@@ -65,6 +90,19 @@
         "bill",
         "checkout",
         "due"
+      ],
+      "weakTokens": [
+        "money",
+        "cash",
+        "card",
+        "credit",
+        "debit",
+        "total",
+        "sum",
+        "owe",
+        "debt",
+        "outstanding",
+        "pending"
       ]
     }
   ]

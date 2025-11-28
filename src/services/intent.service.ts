@@ -1,10 +1,11 @@
 import { tokenize } from "./intent.tokenizer";
 import { IntentDefinition, IntentType } from "../types/intent.types";
 
-const PHRASE_SCORE = 5;
-const TOKEN_SCORE = 1;
+const PHRASE_SCORE = 6;
+const STRONG_TOKEN_SCORE = 2;
+const WEAK_TOKEN_SCORE = 1;
 const MULTI_TOKEN_BONUS = 2;
-const MIN_ACCEPT_SCORE = 3; // below this → UNKNOWN
+const MIN_ACCEPT_SCORE = 4; // below this → UNKNOWN
 
 export function detectIntent(
   intents: Array<IntentDefinition>,
@@ -29,19 +30,32 @@ export function detectIntent(
       }
     }
 
-    // 2. Token scoring
-    let tokenHits = 0;
-    for (const token of intent.tokens || []) {
+    // 2. Strong Token scoring
+    let strongTokenHits = 0;
+    for (const token of intent.strongTokens || []) {
       if (tokens.includes(token)) {
-        score += TOKEN_SCORE;
-        tokenHits++;
+        score += STRONG_TOKEN_SCORE;
+
+        strongTokenHits++;
       }
     }
 
-    // 3. Multi-token bonus
-    if (tokenHits >= 2) {
-      score += MULTI_TOKEN_BONUS;
+    // 3. Weak Token scoring
+    let weakTokenHits = 0;
+    for (const token of intent.strongTokens || []) {
+      if (tokens.includes(token)) {
+        score += WEAK_TOKEN_SCORE;       
+        weakTokenHits++;
+      }
     }
+
+    // // 3. Multi-token bonus
+
+    // if (tokenHits >= 2) {
+    //   score += MULTI_TOKEN_BONUS;
+    // }
+
+    console.log(`\n token dataaa, intent:${intent.label}, best score:${bestScore}`)
 
     // Track the best-scoring intent
     if (score > bestScore) {
