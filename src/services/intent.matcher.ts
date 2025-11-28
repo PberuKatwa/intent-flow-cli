@@ -100,7 +100,7 @@ export function detectIntent(
 function scorePartialPhrase(phrase: string, realTokens: string[]): number {
 
   const { meaningfulTokens } = tokenize(phrase)
-  console.log("phrasee",meaningfulTokens, "tokens", realTokens)
+  // console.log("phrasee",meaningfulTokens, "tokens", realTokens)
 
   const matchedCount = meaningfulTokens.filter(pt => realTokens.includes(pt)).length;
   

@@ -18,8 +18,3 @@ export function tokenize(text: string):TokenizedOutput {
 
   return { tokens, meaningfulTokens }
 }
-
-// export function tokenizePhrase(phrase:string): Array<string>{
-//   const phrasetokens:Array<string> = phrase.toLocaleLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean)
-//   const meaningfulPhrases: Array<string> = 
-// }
