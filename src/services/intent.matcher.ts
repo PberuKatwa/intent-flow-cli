@@ -3,24 +3,11 @@ import { IntentDefinition, IntentType } from "../types/intent.types";
 
 const PHRASE_SCORE = 6;
 const STRONG_TOKEN_SCORE = 2;
+const PARTIAL_PHRASE_MULTIPLIER = 0.5;
 const WEAK_TOKEN_SCORE = 1;
 const MULTI_TOKEN_BONUS = 2;
 const MIN_ACCEPT_SCORE = 4; // below this → UNKNOWN
 const MATCHED_TOKENS = []
-
-
-// Stop words to filter out
-const STOP_WORDS = new Set([
-  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
-  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it'
-]);
-
-// Negation words
-const NEGATIONS = new Set([
-  'not', 'no', 'never', 'dont', "don't", 'cannot', "can't",
-  'wont', "won't", 'nothing', 'nowhere', 'neither'
-]);
 
 export function detectIntent(
   intents: Array<IntentDefinition>,
@@ -34,7 +21,8 @@ export function detectIntent(
   let bestIntent = "UNKNOWN";
   let bestScore = 0;
   let bestIntentLabel = '';
-  let bestPhrase = "UNKNOWN";
+  let bestPhrase = null
+  let matchedPhrase = null
 
   for (const intent of intents) {
     let score = 0;
@@ -47,7 +35,17 @@ export function detectIntent(
       }
     }
 
-    // 2. Strong Token scoring
+    // 2. Check for partial phrase matching
+    if(!bestPhrase){
+      for(const phrase of intent.phrases){
+        const partialScore = scorePartialPhrase(phrase,meaningfulTokens)
+        if( partialScore > 0 ){
+          score += partialScore
+        }
+      }
+    }
+
+    // 3. Strong Token scoring
     let strongTokenHits = 0;
     for (const token of intent.strongTokens || []) {
       if (tokens.includes(token)) {
@@ -58,7 +56,7 @@ export function detectIntent(
       }
     }
 
-    // 3. Weak Token scoring
+    // 4. Weak Token scoring
     let weakTokenHits = 0;
     for (const token of intent.weakTokens || []) {
 
@@ -99,12 +97,15 @@ export function detectIntent(
   };
 }
 
-function scorePartialPhrase(phrase: string, tokens: string[]): number {
-  const phraseTokens = phrase.split(' ').filter(t => !STOP_WORDS.has(t));
-  const matchedCount = phraseTokens.filter(pt => tokens.includes(pt)).length;
+function scorePartialPhrase(phrase: string, realTokens: string[]): number {
+
+  const { meaningfulTokens } = tokenize(phrase)
+  console.log("phrasee",meaningfulTokens, "tokens", realTokens)
+
+  const matchedCount = meaningfulTokens.filter(pt => realTokens.includes(pt)).length;
   
   if (matchedCount === 0) return 0;
   
-  const matchRatio = matchedCount / phraseTokens.length;
-  return PHRASE_SCORE * matchRatio;
+  const matchRatio = matchedCount / realTokens.length;
+  return PHRASE_SCORE * matchRatio * PARTIAL_PHRASE_MULTIPLIER;
 }
