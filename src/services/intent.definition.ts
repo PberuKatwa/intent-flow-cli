@@ -14,8 +14,20 @@ const allIntents:Array<IntentDefinition> = [
             "i would like to order",
             "buy flowers"
         ],
-        tokens: [
+        strongTokens: [
             "order", "buy", "purchase", "send", "place", "checkout", "book", "reserve"
+        ],
+        weakTokens:[
+            "want",
+            "like",
+            "need",
+            "get",
+            "give",
+            "take",
+            "flower",
+            "flowers",
+            "arrangement",
+            "bouquet"
         ]
     },
     {
@@ -27,8 +39,21 @@ const allIntents:Array<IntentDefinition> = [
             "order status",
             "has my order arrived",
         ],
-        tokens: [
+        strongTokens: [
             "track", "tracking", "status","rider", "where", "location", "arrive", "delivered", "delivery", "check", "update"
+        ],
+        weakTokens:[
+            "my",
+            "me",
+            "find",
+            "locate",
+            "position",
+            "when",
+            "time",
+            "coming",
+            "soon",
+            "package",
+            "parcel"
         ]
     },
     {
@@ -40,8 +65,21 @@ const allIntents:Array<IntentDefinition> = [
             "payment due",
             "balance due",
         ],
-        tokens: [
+        strongTokens: [
             "pay", "payment", "price", "cost", "amount", "balance", "charge", "fee", "bill", "checkout", "due"
+        ],
+        weakTokens:[
+            "money",
+            "cash",
+            "card",
+            "credit",
+            "debit",
+            "total",
+            "sum",
+            "owe",
+            "debt",
+            "outstanding",
+            "pending"
         ]
     }
 

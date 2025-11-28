@@ -9,6 +9,7 @@ export type IntentDefinition = {
     id:IntentType;
     label:string;
     phrases:Array < string >;
-    tokens:Array<string>;
+    strongTokens:Array<string>
+    weakTokens:Array<string>;
 }
 
