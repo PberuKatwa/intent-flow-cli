@@ -8,12 +8,28 @@ const MULTI_TOKEN_BONUS = 2;
 const MIN_ACCEPT_SCORE = 4; // below this → UNKNOWN
 const MATCHED_TOKENS = []
 
+
+// Stop words to filter out
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
+  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it'
+]);
+
+// Negation words
+const NEGATIONS = new Set([
+  'not', 'no', 'never', 'dont', "don't", 'cannot', "can't",
+  'wont', "won't", 'nothing', 'nowhere', 'neither'
+]);
+
 export function detectIntent(
   intents: Array<IntentDefinition>,
   message: string
 ) {
   const text = message.toLowerCase().trim();
   const tokens = tokenize(text);
+  const meaningfulTokens = tokens.filter(t => !STOP_WORDS.has(t));
+
 
   // Track scores
   let bestIntent = "UNKNOWN";
@@ -82,4 +98,14 @@ export function detectIntent(
     score: bestScore,
     matchedPhrase: bestPhrase
   };
+}
+
+function scorePartialPhrase(phrase: string, tokens: string[]): number {
+  const phraseTokens = phrase.split(' ').filter(t => !STOP_WORDS.has(t));
+  const matchedCount = phraseTokens.filter(pt => tokens.includes(pt)).length;
+  
+  if (matchedCount === 0) return 0;
+  
+  const matchRatio = matchedCount / phraseTokens.length;
+  return PHRASE_SCORE * matchRatio;
 }
