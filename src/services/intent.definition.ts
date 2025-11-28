@@ -28,7 +28,7 @@ const allIntents:Array<IntentDefinition> = [
             "has my order arrived",
         ],
         tokens: [
-            "track", "tracking", "status", "where", "location", "arrive", "delivered", "delivery", "check", "update"
+            "track", "tracking", "status","rider", "where", "location", "arrive", "delivered", "delivery", "check", "update"
         ]
     },
     {
