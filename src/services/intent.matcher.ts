@@ -16,7 +16,7 @@ export function detectIntent(
   const tokens = tokenize(text);
 
   // Track scores
-  let bestIntent = IntentType.UNKNOWN;
+  let bestIntent = "UNKNOWN";
   let bestScore = 0;
   let bestIntentLabel = '';
   let bestPhrase = "UNKNOWN";

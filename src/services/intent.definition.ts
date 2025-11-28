@@ -4,7 +4,7 @@ import { logger } from "../utils/logger";
 const allIntents:Array<IntentDefinition> = [
 
     {
-        id:IntentType.MAKE_ORDER,
+        id:"MAKE_ORDER",
         label:`Make Order`,
         phrases:[
             
@@ -31,7 +31,7 @@ const allIntents:Array<IntentDefinition> = [
         ]
     },
     {
-        id:IntentType.TRACK_ORDER,
+        id:"TRACK_ORDER",
         label:`Track Order`,
         phrases:[
             "where is my order",
@@ -57,7 +57,7 @@ const allIntents:Array<IntentDefinition> = [
         ]
     },
     {
-        id:IntentType.PAY_FOR_ORDER,
+        id:"PAY_FOR_ORDER",
         label:`Pay for order`,
         phrases:[
             "how much do i owe",

@@ -6,7 +6,7 @@ export enum IntentType{
 }
 
 export type IntentDefinition = {
-    id:IntentType;
+    id:string;
     label:string;
     phrases:Array < string >;
     strongTokens:Array<string>
