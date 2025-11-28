@@ -27,8 +27,7 @@ export function detectIntent(
   message: string
 ) {
   const text = message.toLowerCase().trim();
-  const tokens = tokenize(text);
-  const meaningfulTokens = tokens.filter(t => !STOP_WORDS.has(t));
+  const { tokens, meaningfulTokens } = tokenize(text);
 
 
   // Track scores

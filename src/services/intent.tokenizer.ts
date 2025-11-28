@@ -5,13 +5,15 @@ const STOP_WORDS = new Set([
   'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it'
 ]);
 
-export function tokenize(text: string): string[] {
+type TokenizedOutput = {
+  tokens:Array<string>;
+  meaningfulTokens:Array<string>;
+}
 
-  const tokenizedText = text.toLocaleLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean)
-  const meaningfulTokens = tokenizedText.filter(t => !STOP_WORDS.has(t));
+export function tokenize(text: string):TokenizedOutput {
 
-  console.log("tokenized text", tokenizedText)
-  console.log("meaningful", meaningfulTokens)
+  const tokens:Array<string> = text.toLocaleLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean)
+  const meaningfulTokens:Array<string> = tokens.filter(t => !STOP_WORDS.has(t));
 
-  return meaningfulTokens
+  return { tokens, meaningfulTokens }
 }

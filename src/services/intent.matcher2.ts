@@ -55,8 +55,7 @@ export function detectMultipleIntents(
   maxResults: number = 3
 ): IntentScore[] {
   const text = message.toLowerCase().trim();
-  const tokens = tokenize(text);
-  const meaningfulTokens = tokens.filter(t => !STOP_WORDS.has(t));
+  const { tokens, meaningfulTokens } = tokenize(text);
   const hasNegation = detectNegation(tokens);
 
   const scores: IntentScore[] = [];
