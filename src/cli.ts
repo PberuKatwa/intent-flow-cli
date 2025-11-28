@@ -1,7 +1,11 @@
 import * as readline from 'readline';
+import path from "path";
 import { logger } from './utils/logger'; // Assuming logger is available
 import allIntents from './services/intent.definition'; // Assuming this imports an array of intent objects
 import { detectIntent } from './services/intent.matcher'; // Assuming detectIntent is an asynchronous service
+import { loadIntentsFromFile } from './services/intent.loader'
+
+const defaultPath = path.join(__dirname,"files","default.json")
 
 // --- Constants and Messages ---
 const CLI_NAME = `INTENT FLOW CLI`;
@@ -60,8 +64,10 @@ class CLI {
         }
 
         try {
+
+            const fullIntent = loadIntentsFromFile(defaultPath)
             // Processing user input with asynchronous intent detection
-            const result =  detectIntent(allIntents, message);
+            const result =  detectIntent(fullIntent, message);
 
             console.log(`\n[RESULT] Intent Flow Detection:`);
             console.log(JSON.stringify(result, null, 2));

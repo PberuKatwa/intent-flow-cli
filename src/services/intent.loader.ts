@@ -12,6 +12,10 @@ function normalizeArray(arr: string[]): string[] {
 export function loadIntentsFromFile(filePath:string):IntentDefinition[]{
     try{
 
+        if( !fs.existsSync( filePath ) ) throw new Error(`Intent File path doesnt exist`);
+
+        if( !fs.statSync(filePath).isFile() ) throw new Error(`File path exists but no file was found`)
+
         const rawJson = fs.readFileSync( filePath, "utf-8" )
         const json = JSON.parse(rawJson)
 
@@ -39,6 +43,6 @@ export function loadIntentsFromFile(filePath:string):IntentDefinition[]{
     }catch(error){
 
         throw error
-        
+
     }
 }
