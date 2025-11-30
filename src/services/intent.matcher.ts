@@ -76,7 +76,6 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
 
     // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
     if(intent.strongTokens){
-      let matchFound = false
 
       for(const sToken of intent.strongTokens){
 
@@ -93,7 +92,7 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
             score += SCORES.STRONG_TOKEN
             usedTokenIndices.has(i)
             matchedStrongTokens.push(userToken)
-            
+
           } else{
 
             const distance = getLevenshteinDistance( sTokenized, userToken )
@@ -101,7 +100,7 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
             if( distance <= 1 ){
               score += SCORES.FUZZY_MATCH
               usedTokenIndices.add(i)
-              matchedFuzzyTokens.push(sTokenized)
+              matchedFuzzyTokens.push(sToken)
             }
 
           }
@@ -119,14 +118,21 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
 
         let wTokenized = tokenizeSingleWord(wToken).stemmed
 
-        for(const token of tokenList){
-          if( wTokenized === token ){
+        for( let i = 0; i <  stemmedTokens.length; i++ ){
 
-            score += SCORES.STRONG_TOKEN
-            matchedWeakTokens.push(token)
+          const userToken = stemmedTokens[i]
 
-          } 
-        } 
+          if( usedTokenIndices.has(i) ) continue;
+
+          if( userToken === wTokenized ){
+
+            score += SCORES.WEAK_TOKEN
+            matchedWeakTokens.push(wToken)
+            usedTokenIndices.add(i)
+
+          }
+
+        }
 
       }
 
