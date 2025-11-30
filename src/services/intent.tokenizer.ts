@@ -1,7 +1,6 @@
-// intent.tokenizer.ts
-import { stemmer } from "../utils/porterStemmer"; // <-- Import the new stemmer
+import { stemmer } from "../utils/porterStemmer"; 
 
-// [// Stop words to filter out
+// Stop words to filter out
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
   'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
@@ -10,8 +9,8 @@ const STOP_WORDS = new Set([
 ]);
 
 type TokenizedOutput = {
-  originalTokens:Array<string>; // Renamed for clarity
-  stemmedTokens:Array<string>; // Renamed for clarity
+  originalTokens:Array<string>; 
+  stemmedTokens:Array<string>; 
 }
 
 export function tokenize(text: string):TokenizedOutput {
