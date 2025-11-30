@@ -1,4 +1,4 @@
-import { stemmer } from "../utils/porterStemmer"; 
+import { stemmer } from "../utils/stemmer"; 
 
 // Stop words to filter out
 const STOP_WORDS = new Set([
@@ -19,10 +19,9 @@ export function tokenize(text: string):TokenizedOutput {
   
   const originalTokens:Array<string> = cleanText.filter(Boolean);
 
-  // Apply stemming and stop word filtering
   const stemmedTokens:Array<string> = originalTokens
     .filter(t => !STOP_WORDS.has(t))
-    .map(t => stemmer(t)); // <-- Use the custom stemmer here
+    .map(t => stemmer(t));
 
   return { originalTokens, stemmedTokens }
 }
