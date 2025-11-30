@@ -14,6 +14,10 @@ const SCORES = {
 
 export function detectIntent(intents: Array<IntentDefinition>, message: string) {
   const { stemmedTokens } = tokenize(message);
+
+  const matchedStrongTokens = []
+  const matchedFuzzyTokens = []
+  const matchedWeakTokens = []
   
   let bestIntent = { 
     id: "UNKNOWN", 
@@ -71,7 +75,7 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
 
       }
 
-      console.log(`STEMMED:${stemmedTokens}, PHRASE:${phraseTokens}, MODIFIEED:${tokenList}`)
+      console.log(`STEMMED:${stemmedTokens}, PHRASE:${phraseTokens}, MODIFIEED:${tokenList}, SCORE:${score}`)
     }
 
     // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
@@ -84,40 +88,50 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
         for( const tok of tokenList ){
 
           if(sTokenized === tok){
-            score += SCORES.STRONG_TOKEN            
+
+            score += SCORES.STRONG_TOKEN
+            matchedStrongTokens.push(tok)  
+                      
           }else{
 
             const distance = getLevenshteinDistance(tok, sTokenized);
             if( distance.length <= 1 ) score += SCORES.FUZZY_MATCH
+
+            matchedFuzzyTokens.push(tok)
 
           }
 
         }
       }
 
+      console.log(`Strong `)
     }
 
+    // 3.Weak Token scoring
+    if(intent.weakTokens){
 
-    // --- 3. Weak Token Scoring ---
-    const intentWeakTokens = intent.weakTokens?.map(t => tokenize(t).stemmedTokens[0]) || [];
-    for (const wToken of intentWeakTokens) {
-        stemmedTokens.forEach((uToken, idx) => {
-          if (usedTokenIndices.has(idx)) return; // Don't score if used by strong/phrase
-          if (uToken === wToken) {
-            score += SCORES.WEAK_TOKEN;
-            usedTokenIndices.add(idx);
-          }
-        });
+      for(const wToken of intent.weakTokens){
+
+        let wTokenized = tokenizeSingleWord(wToken).stemmed
+
+        for(const token of tokenList){
+          if( wTokenized === token ) score += SCORES.STRONG_TOKEN
+        } 
+
+      }
+
     }
 
     // Update Best
     if (score > bestIntent.score) {
+
       bestIntent = {
         id: intent.id,
         label: intent.label,
         score: score,
         matchedPhrase
       };
+      
     }
   }
 
