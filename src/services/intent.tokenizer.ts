@@ -1,6 +1,6 @@
-// import { stemmer } from "../utils/stemmer"; 
 const natural = require('natural')
 const stemmer = natural.PorterStemmer.stem;
+
 // Stop words to filter out
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
