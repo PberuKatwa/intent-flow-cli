@@ -1,160 +1,304 @@
-# Intent Detection Engine
+# Intent Flow CLI
 
-A lightweight, pattern-based NLP intent classification engine for Node.js and TypeScript. Classify user input into predefined intents using regex patterns and token matching without external API dependencies.
-
-## Overview
-
-This CLI tool analyzes natural language text and returns structured intent classifications with confidence scores. It uses a hybrid approach combining phrase-level regex matching with token-based scoring to achieve accurate intent detection for common use cases like order management, customer service routing, and conversational interfaces.
+A powerful, flexible command-line tool for detecting user intent from natural language text. Intent Flow CLI uses advanced NLP techniques including tokenization, stemming, phrase matching, and fuzzy matching to accurately classify user messages into predefined intents.
 
 ## Features
 
-- **Hybrid Matching**: Combines phrase regex patterns (high weight) with individual token matching (lower weight)
-- **Confidence Scoring**: Configurable thresholds ensure reliable classification with margin validation
-- **Stemming Support**: Basic stemming improves token matching across word variations
-- **Zero Dependencies**: No external NLP APIs or trained models required
-- **Extensible**: Easy to add new intents, patterns, and tokens through simple configuration
-- **Detailed Output**: Returns intent ID, label, confidence score, and matched patterns/tokens
-- **Ambiguity Handling**: Returns "unknown" intent when confidence is insufficient
+- **Multi-layered Intent Matching**: Combines exact phrase matching, strong/weak token scoring, and fuzzy matching for robust intent detection
+- **Configurable Intent Definitions**: Easy-to-define intents with phrases, strong tokens, and weak tokens
+- **Smart Tokenization**: Porter Stemmer algorithm with stop word filtering for accurate text processing
+- **Interactive CLI**: Real-time intent detection with detailed match reporting
+- **Extensible Architecture**: Load custom intent definitions from JSON files
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [How It Works](#how-it-works)
+- [Intent Definition](#intent-definition)
+- [Configuration](#configuration)
+- [Scoring System](#scoring-system)
+- [API Reference](#api-reference)
+- [Examples](#examples)
+- [Contributing](#contributing)
 
 ## Installation
 
 ```bash
-npm install -g intent-flow-cli
-```
-
-Or for local development:
-
-```bash
+# Clone the repository
 git clone https://github.com/yourusername/intent-flow-cli.git
+
+# Navigate to project directory
 cd intent-flow-cli
+
+# Install dependencies
 npm install
+
+# Build the project
 npm run build
+
+# Run the CLI
+npm start
 ```
 
-## Usage
+### Dependencies
 
-### CLI
+- `natural`: NLP library for stemming and string distance calculations
+- `typescript`: Type-safe JavaScript development
+- `readline`: Node.js native module for CLI interactions
+
+## Quick Start
 
 ```bash
-# Basic usage
-intent-flow "where is my order"
+# Start the CLI
+npm start
 
-# Output:
-# Intent: track (ID: 2)
-# Score: 6
-# Matched phrases: where is my order
-# Matched tokens: where, order
-
-# Check multiple inputs
-intent-flow "I want to buy flowers"
-intent-flow "how much do I owe"
-intent-flow "hello there"  # Returns unknown
-```
-
-### Programmatic Usage
-
-```typescript
-import { detectIntent, IntentType } from './services/intent.service';
-
-const result = detectIntent("where is my order");
-
-console.log(result);
-// {
-//   intent: 2,
-//   label: "track",
-//   score: 6,
-//   details: {
-//     phrases: ["where is my order"],
-//     tokens: ["track", "where", "order"]
-//   }
-// }
-
-if (result.intent === IntentType.TRACK) {
-  // Handle order tracking
-}
-```
-
-## Intent Types
-
-The default configuration includes:
-
-- **MAKE** (1): Order creation, purchasing, booking
-- **TRACK** (2): Order status, delivery tracking, location queries
-- **PAY** (3): Payment processing, pricing, billing
-- **UNKNOWN** (0): Fallback for unclassified input
-
-## Configuration
-
-### Adding New Intents
-
-Edit the `INTENTS` array in `services/intent.service.ts`:
-
-```typescript
-{
-  id: IntentType.CANCEL,
-  label: "cancel",
-  phraseRegexes: [
-    /\b(cancel my order|cancel order)\b/,
-    /\b(i want to cancel)\b/,
-  ],
-  tokens: [
-    "cancel",
-    "stop",
-    "refund",
-    "undo",
-  ],
-}
-```
-
-### Tuning Parameters
-
-Adjust these constants in `intent.service.ts`:
-
-```typescript
-const PHRASE_WEIGHT = 3;           // Weight for phrase regex matches
-const TOKEN_WEIGHT = 1;            // Weight for individual token matches
-const TOKEN_MULTI_HIT_BONUS = 1;   // Bonus for multiple token matches
-const MIN_CONFIDENCE = 3;          // Minimum score to accept intent
-const MIN_MARGIN = 2;              // Required score difference from runner-up
+# Try some messages:
+> I want to order flowers
+> Where is my order?
+> How much do I owe?
+> exit
 ```
 
 ## How It Works
 
-1. **Normalization**: Input text is lowercased, stripped of special characters, and whitespace-normalized
-2. **Stemming**: Words are stemmed to remove common endings (ing, ed, ly, es, s)
-3. **Phrase Matching**: Regex patterns are tested against normalized input (weight: 3 per match)
-4. **Token Matching**: Individual tokens are matched against stemmed words (weight: 1 per match)
-5. **Multi-Token Bonus**: Extra point awarded when 2+ distinct tokens match
-6. **Validation**: Top intent must meet minimum confidence and beat runner-up by minimum margin
-7. **Result**: Returns intent ID, label, score, and matched patterns/tokens
+Intent Flow CLI processes user input through three main stages:
+
+### 1. Tokenization
+
+The tokenizer cleans, normalizes, and stems input text:
+
+```typescript
+Input: "I want to order flowers"
+→ Original Tokens: ["i", "want", "to", "order", "flowers"]
+→ Stemmed Tokens: ["want", "order", "flower"] // Stop words removed
+```
+
+**Features:**
+- Lowercase normalization
+- Punctuation removal
+- Stop word filtering (the, a, an, is, are, etc.)
+- Porter Stemmer algorithm for word stemming
+
+### 2. Intent Matching
+
+The matcher scores each intent definition against the input using multiple strategies:
+
+#### Phrase Matching (Highest Priority)
+- Compares input against predefined phrases
+- Uses normalized Jaccard similarity
+- **Exact match**: Returns immediately with score 10
+- **Partial match**: Applies score with partial multiplier
+
+#### Strong Token Matching
+- Matches against high-confidence keywords
+- **Exact match**: +3 points
+- **Fuzzy match** (Levenshtein distance ≤ 1): +1.5 points
+
+#### Weak Token Matching
+- Matches against supporting keywords
+- **Exact match**: +1 point
+
+### 3. Result Determination
+
+```typescript
+{
+  bestIntent: {
+    id: "MAKE_ORDER",
+    label: "Make Order",
+    score: 8.5,
+    matchedPhrase: null
+  },
+  matchedStrongTokens: ["order"],
+  matchedWeakTokens: ["want", "flower"],
+  matchedFuzzyTokens: []
+}
+```
+
+Returns `UNKNOWN` if score < 4 (minimum threshold).
+
+## Intent Definition
+
+Intents are defined using the `IntentDefinition` interface:
+
+```typescript
+{
+  id: "MAKE_ORDER",           // Unique identifier
+  label: "Make Order",         // Human-readable label
+  
+  phrases: [                   // Exact or partial phrase matches
+    "place an order",
+    "make an order",
+    "i want to order"
+  ],
+  
+  strongTokens: [              // High-confidence keywords
+    "order", "buy", "purchase", "send"
+  ],
+  
+  weakTokens: [                // Supporting keywords
+    "want", "like", "need", "flower"
+  ]
+}
+```
+
+### Built-in Intents
+
+The CLI comes with three example intents:
+
+| Intent ID | Purpose | Example Phrases |
+|-----------|---------|-----------------|
+| `MAKE_ORDER` | User wants to purchase | "I want to order flowers", "buy arrangement" |
+| `TRACK_ORDER` | User checking delivery status | "where is my order", "track package" |
+| `PAY_FOR_ORDER` | User inquiring about payment | "how much do I owe", "what's the balance" |
+
+## Configuration
+
+### Loading Custom Intents
+
+Create a JSON file with your intent definitions:
+
+```json
+[
+  {
+    "id": "CANCEL_ORDER",
+    "label": "Cancel Order",
+    "phrases": [
+      "cancel my order",
+      "i want to cancel"
+    ],
+    "strongTokens": ["cancel", "stop", "abort"],
+    "weakTokens": ["order", "purchase", "don't"]
+  }
+]
+```
+
+Load it in your code:
+
+```typescript
+import { loadIntentsFromFile } from './services/intent.loader';
+
+const customIntents = loadIntentsFromFile('./path/to/intents.json');
+const result = detectIntent(customIntents, userMessage);
+```
+
+### Adjusting Scoring Parameters
+
+Modify the scoring constants in `intent.matcher.ts`:
+
+```typescript
+const SCORES = {
+  EXACT_PHRASE: 10,              // Full phrase match
+  STRONG_TOKEN: 3,               // Strong keyword match
+  WEAK_TOKEN: 1,                 // Weak keyword match
+  FUZZY_MATCH: 1.5,              // Fuzzy string match
+  MIN_THRESHOLD: 4,              // Minimum score for detection
+  PARTIAL_PHRASE_MULTIPLIER: 0.5 // Multiplier for partial phrases
+};
+```
+
+## Scoring System
+
+### Score Calculation Example
+
+**Input**: "I need to buy flowers"
+
+**Processing**:
+1. Tokenize → `["need", "buy", "flower"]`
+2. Check phrases:
+   - "buy flowers" → 2/2 tokens match in phrase "buy flowers" → +10 points
+3. Return immediately with `MAKE_ORDER` (exact phrase match)
+
+**Alternative Input**: "want to get some flowers"
+
+1. Tokenize → `["want", "get", "flower"]`
+2. Check phrases → No exact matches
+3. Strong tokens:
+   - "get" ≈ "buy" (distance=2) → No score
+4. Weak tokens:
+   - "want" → +1
+   - "flower" → +1
+5. **Total**: 2 points → Below threshold → `UNKNOWN`
+
+## API Reference
+
+### `tokenize(text: string): TokenizedOutput`
+
+Tokenizes and stems input text.
+
+```typescript
+const result = tokenize("I want to order");
+// {
+//   originalTokens: ["i", "want", "to", "order"],
+//   stemmedTokens: ["want", "order"]
+// }
+```
+
+### `detectIntent(intents: IntentDefinition[], message: string)`
+
+Detects the best matching intent for a message.
+
+```typescript
+const result = detectIntent(allIntents, "track my order");
+// {
+//   bestIntent: {
+//     id: "TRACK_ORDER",
+//     label: "Track Order",
+//     score: 10,
+//     matchedPhrase: "track my order"
+//   },
+//   matchedStrongTokens: ["track"],
+//   matchedWeakTokens: ["my"],
+//   matchedFuzzyTokens: []
+// }
+```
+
+### `loadIntentsFromFile(filePath: string): IntentDefinition[]`
+
+Loads intent definitions from a JSON file.
+
+```typescript
+const intents = loadIntentsFromFile('./intents/custom.json');
+```
 
 ## Examples
 
-| Input | Detected Intent | Score | Reasoning |
-|-------|----------------|-------|-----------|
-| "where is my order" | TRACK | 6 | Phrase match + tokens |
-| "I want to buy flowers" | MAKE | 4 | Phrase match + token |
-| "how much do I owe" | PAY | 3 | Phrase match |
-| "hello" | UNKNOWN | 0 | No matches |
-| "order flowers for delivery" | MAKE | 5 | Multiple token matches + bonus |
+### Example 1: E-commerce Bot
 
-## Development
+```typescript
+const ecommerceIntents = [
+  {
+    id: "ADD_TO_CART",
+    label: "Add to Cart",
+    phrases: ["add to cart", "put in basket"],
+    strongTokens: ["add", "cart", "basket"],
+    weakTokens: ["want", "like", "this"]
+  },
+  {
+    id: "CHECK_PRICE",
+    label: "Check Price",
+    phrases: ["how much", "what's the price"],
+    strongTokens: ["price", "cost", "much"],
+    weakTokens: ["how", "what", "tell"]
+  }
+];
 
-```bash
-# Install dependencies
-npm install
+detectIntent(ecommerceIntents, "add this to my cart");
+// Returns: ADD_TO_CART
+```
 
-# Run tests
-npm test
+### Example 2: Customer Support Bot
 
-# Build
-npm run build
-
-# Run locally
-npm start "your test message"
-
-# Watch mode
-npm run dev
+```typescript
+const supportIntents = [
+  {
+    id: "REPORT_BUG",
+    label: "Report Bug",
+    phrases: ["report a bug", "something is broken"],
+    strongTokens: ["bug", "broken", "error", "issue"],
+    weakTokens: ["report", "problem", "not", "working"]
+  }
+];
 ```
 
 ## Project Structure
@@ -163,86 +307,48 @@ npm run dev
 intent-flow-cli/
 ├── src/
 │   ├── services/
-│   │   └── intent.service.ts    # Core intent detection logic
-│   ├── cli.ts                    # CLI entry point
-│   └── index.ts                  # Programmatic API export
-├── tests/
-│   └── intent.service.test.ts
+│   │   ├── intent.definition.ts    # Intent definitions
+│   │   ├── intent.tokenizer.ts    # Tokenization logic
+│   │   ├── intent.matcher.ts      # Intent matching algorithm
+│   │   └── intent.loader.ts       # Load intents from files
+│   ├── types/
+│   │   └── intent.types.ts        # TypeScript interfaces
+│   ├── utils/
+│   │   └── logger.ts              # Logging utilities
+│   ├── files/
+│   │   └── default.json           # Default intent definitions
+│   └── index.ts                   # CLI entry point
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-## Testing
-
-The engine includes a test suite covering:
-
-- Phrase regex matching
-- Token-based matching
-- Confidence thresholds
-- Margin validation
-- Ambiguous input handling
-- Edge cases
-
-```bash
-npm test
-```
-
-## Use Cases
-
-- Customer service chatbots
-- Order management systems
-- Voice assistant command routing
-- Form intent classification
-- FAQ routing
-- Support ticket categorization
-- Conversational UI navigation
-
-## Limitations
-
-- Pattern-based approach requires manual rule configuration
-- Does not handle complex semantic understanding
-- Limited to predefined intent categories
-- Basic stemming may miss some word variations
-- No context awareness across multiple messages
-
-## Extending the Engine
-
-### Adding Synonyms
-
-Expand token arrays with domain-specific vocabulary:
-
-```typescript
-tokens: [
-  "track",
-  "locate",    // synonym
-  "find",      // synonym
-  "monitor",   // synonym
-]
-```
-
-### Domain Adaptation
-
-Replace the default e-commerce intents with your domain:
-
-```typescript
-// Customer support domain
-IntentType.TECHNICAL_ISSUE
-IntentType.BILLING_QUESTION
-IntentType.FEATURE_REQUEST
-IntentType.ACCOUNT_MANAGEMENT
-```
-
-### Multi-Language Support
-
-Create separate intent definitions per language or use translation preprocessing.
-
 ## Contributing
 
-Contributions are welcome! Please follow these guidelines:
+We welcome contributions! Here's how you can help:
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'Add amazing feature'`
+4. **Push to the branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+### Development Guidelines
+
+- Write clear, documented code
+- Add tests for new features
+- Follow existing code style
+- Update README for significant changes
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/intent-flow-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/intent-flow-cli/discussions)
+
+---
+
+Built with ❤️ using TypeScript and Natural NLP
