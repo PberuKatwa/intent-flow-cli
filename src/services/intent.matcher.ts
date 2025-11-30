@@ -89,12 +89,20 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
           if( usedTokenIndices.has(i) ) continue
 
           if( userToken == sTokenized ){
+
             score += SCORES.STRONG_TOKEN
             usedTokenIndices.has(i)
             matchedStrongTokens.push(userToken)
+            
           } else{
 
             const distance = getLevenshteinDistance( sTokenized, userToken )
+
+            if( distance <= 1 ){
+              score += SCORES.FUZZY_MATCH
+              usedTokenIndices.add(i)
+              matchedFuzzyTokens.push(sTokenized)
+            }
 
           }
 
@@ -102,7 +110,6 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
 
       }
 
-      console.log(`Strong `)
     }
 
     // 3.Weak Token scoring
