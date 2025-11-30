@@ -25,6 +25,10 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
   for (const intent of intents) {
     let score = 0;
     let matchedPhrase = null;
+
+    console.log("\n--------------------------------------------------");
+    console.log(`INTENT: ${intent.id} (${intent.label})`);
+    console.log("--------------------------------------------------");
     
     // Set of indices in user input that have been "used" to prevent double scoring
     const usedTokenIndices = new Set<number>();
@@ -39,8 +43,9 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
       const intersectionTokens = phraseTokens.filter( function(token){
         return stemmedTokens.includes(token)
       })
+
       tokenList = phraseTokens.filter( function(token){
-        return stemmedTokens.includes(token)
+        return !stemmedTokens.includes(token)
       })
 
       const matchRatio = ( intersectionTokens.length / phraseTokens.length )
@@ -54,8 +59,17 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
         }
       } else if( matchRatio < 1 ){
         score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
+
+        stemmedTokens.forEach((t, index) => {
+          if (phraseTokens.includes(t)) {
+            usedTokenIndices.add(index);
+            console.log(`Marked token "${t}" at index ${index} as USED`);
+          }
+        });
+
       }
 
+      console.log(`STEMMED:${stemmedTokens}, PHRASE:${phraseTokens}, MODIFIEED:${tokenList}`)
     }
 
     // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
