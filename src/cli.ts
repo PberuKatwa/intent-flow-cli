@@ -88,7 +88,7 @@ class CLI {
     }
 
     /**
-     * @function handleExit - Cleans up and exits the process.
+     * @function handleExit - Clleans up and exits the process.
      */
     private handleExit(): void {
         logger.info(`\n\nCLI EXITED. Session terminated.`); 
