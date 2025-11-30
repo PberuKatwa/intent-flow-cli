@@ -1,13 +1,13 @@
 import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
 import { IntentDefinition, IntentType } from "../types/intent.types";
-const natural = require('natural'); // Import natural here too
+const natural = require('natural'); 
 const getLevenshteinDistance = natural.LevenshteinDistance;
 
 const SCORES = {
   EXACT_PHRASE: 10,
   STRONG_TOKEN: 3,
   WEAK_TOKEN: 1,
-  FUZZY_MATCH: 1.5, // Score for "almost" matching a token
+  FUZZY_MATCH: 1.5,
   MIN_THRESHOLD: 4,
   PARTIAL_PHRASE_MULTIPLIER: 0.5
 };
@@ -69,38 +69,37 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
         }
 
       } else if( matchRatio < 1 ){
-
         score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
-
       }
 
-      console.log(`STEMMED:${stemmedTokens}, PHRASE:${phraseTokens}, MODIFIEED:${tokenList}, SCORE:${score}`)
     }
 
     // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
     if(intent.strongTokens){
+      let matchFound = false
 
       for(const sToken of intent.strongTokens){
 
         let sTokenized = tokenizeSingleWord(sToken).stemmed
 
-        for( const tok of tokenList ){
+        for( let i = 0 ; i < stemmedTokens.length; i++ ){
 
-          if(sTokenized === tok){
+          const userToken = stemmedTokens[i]
 
+          if( usedTokenIndices.has(i) ) continue
+
+          if( userToken == sTokenized ){
             score += SCORES.STRONG_TOKEN
-            matchedStrongTokens.push(tok)  
+            usedTokenIndices.has(i)
+            matchedStrongTokens.push(userToken)
+          } else{
 
-          }else{
-
-            const distance = getLevenshteinDistance(tok, sTokenized);
-            if( distance <= 1) score += SCORES.FUZZY_MATCH
-
-            matchedFuzzyTokens.push(tok)
+            const distance = getLevenshteinDistance( sTokenized, userToken )
 
           }
 
         }
+
       }
 
       console.log(`Strong `)
