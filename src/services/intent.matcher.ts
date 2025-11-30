@@ -1,7 +1,7 @@
-import { tokenize } from "./intent.tokenizer";
+import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
 import { IntentDefinition, IntentType } from "../types/intent.types";
-// A simple levenshtein function (or use a library like 'fast-levenshtein')
-import { getLevenshteinDistance } from "../utils/levenshteinDistance"; 
+const natural = require('natural'); // Import natural here too
+const getLevenshteinDistance = natural.LevenshteinDistance;
 
 const SCORES = {
   EXACT_PHRASE: 10,
@@ -51,12 +51,14 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
       const matchRatio = ( intersectionTokens.length / phraseTokens.length )
 
       if( matchRatio === 1 ){
+
         return {
           id: intent.id,
           label: intent.label,
           score: SCORES.EXACT_PHRASE,
           phrase:phrase
         }
+
       } else if( matchRatio < 1 ){
         score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
 
@@ -73,35 +75,28 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
     }
 
     // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
-    if (!matchedPhrase) {
-      const intentStrongTokens = intent.strongTokens?.map(t => tokenize(t).stemmedTokens[0]) || [];
-      
-      for (const iToken of intentStrongTokens) {
-        let found = false;
+    if(intent.strongTokens){
 
-        // Exact Match
-        stemmedTokens.forEach((uToken, idx) => {
-          if (usedTokenIndices.has(idx)) return;
-          if (uToken === iToken) {
-            score += SCORES.STRONG_TOKEN;
-            usedTokenIndices.add(idx);
-            found = true;
+      for(const sToken of intent.strongTokens){
+
+        let sTokenized = tokenizeSingleWord(sToken).stemmed
+
+        for( const tok of tokenList ){
+
+          if(sTokenized === tok){
+            score += SCORES.STRONG_TOKEN            
+          }else{
+
+            const distance = getLevenshteinDistance(tok, sTokenized);
+            if( distance.length <= 1 ) score += SCORES.FUZZY_MATCH
+
           }
-        });
 
-        // Fuzzy Match (only if exact not found)
-        if (!found) {
-           stemmedTokens.forEach((uToken, idx) => {
-            if (usedTokenIndices.has(idx)) return;
-            // Allow 1 typo for words > 3 chars
-            if (uToken.length > 3 && getLevenshteinDistance(uToken, iToken) <= 1) {
-              score += SCORES.FUZZY_MATCH;
-              usedTokenIndices.add(idx);
-            }
-          });
         }
       }
+
     }
+
 
     // --- 3. Weak Token Scoring ---
     const intentWeakTokens = intent.weakTokens?.map(t => tokenize(t).stemmedTokens[0]) || [];

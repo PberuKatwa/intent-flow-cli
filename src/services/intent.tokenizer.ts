@@ -13,6 +13,12 @@ type TokenizedOutput = {
   stemmedTokens:Array<string>; 
 }
 
+type SingleTokenOutput = {
+  original: string;
+  stemmed: string;
+  isStopWord: boolean;
+};
+
 export function tokenize(text: string):TokenizedOutput {
 
   const cleanText = text.toLocaleLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean)
@@ -24,4 +30,34 @@ export function tokenize(text: string):TokenizedOutput {
     .map(t => stemmer(t));
 
   return { originalTokens, stemmedTokens }
+}
+
+export function tokenizeSingleWord(text: string): SingleTokenOutput {
+  
+  const cleanTokens: string[] = text
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (cleanTokens.length === 0) {
+    return { original: text, stemmed: '', isStopWord: false };
+  }
+  const originalWord = cleanTokens[0];
+
+  const isStopWord = STOP_WORDS.has(originalWord);
+
+  let stemmedWord = originalWord;
+
+  if (!isStopWord) {
+    stemmedWord = stemmer(originalWord);
+  } else {
+    stemmedWord = '';
+  }
+
+  return { 
+    original: originalWord, 
+    stemmed: stemmedWord, 
+    isStopWord: isStopWord 
+  };
 }

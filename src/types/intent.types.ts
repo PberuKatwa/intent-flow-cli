@@ -11,8 +11,5 @@ export type IntentDefinition = {
     phrases:Array < string >;
     strongTokens:Array<string>
     weakTokens:Array<string>;
-    minScore?: number;      // Custom threshold (default: 4)
-    priority?: number;      // Score multiplier (default: 1)
-    canBeNegated?: boolean;
 }
 
