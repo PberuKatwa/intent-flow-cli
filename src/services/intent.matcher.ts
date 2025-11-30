@@ -8,7 +8,8 @@ const SCORES = {
   STRONG_TOKEN: 3,
   WEAK_TOKEN: 1,
   FUZZY_MATCH: 1.5, // Score for "almost" matching a token
-  MIN_THRESHOLD: 4
+  MIN_THRESHOLD: 4,
+  PARTIAL_PHRASE_MULTIPLIER: 0.5
 };
 
 export function detectIntent(intents: Array<IntentDefinition>, message: string) {
@@ -27,26 +28,34 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
     
     // Set of indices in user input that have been "used" to prevent double scoring
     const usedTokenIndices = new Set<number>();
+    let tokenList = stemmedTokens
 
     // --- 1. Phrase Matching (Normalized Jaccard) ---
     // We treat phrases as "bags of stemmed words" to handle "order cancel" vs "cancel order"
     for (const phrase of intent.phrases) {
-      const phraseTokens = tokenize(phrase).stemmedTokens;
-      
-      // Check intersection
-      const intersection = phraseTokens.filter(pt => stemmedTokens.includes(pt));
-      
-      // If we found all words in the phrase (order agnostic)
-      if (intersection.length === phraseTokens.length) {
-         // Mark these tokens as used
-         stemmedTokens.forEach((t, index) => {
-             if(phraseTokens.includes(t)) usedTokenIndices.add(index);
-         });
 
-         score += SCORES.EXACT_PHRASE;
-         matchedPhrase = phrase;
-         break; // Stop checking other phrases for this intent
+      const phraseTokens = tokenize(phrase).stemmedTokens;
+
+      const intersectionTokens = phraseTokens.filter( function(token){
+        return stemmedTokens.includes(token)
+      })
+      tokenList = phraseTokens.filter( function(token){
+        return stemmedTokens.includes(token)
+      })
+
+      const matchRatio = ( intersectionTokens.length / phraseTokens.length )
+
+      if( matchRatio === 1 ){
+        return {
+          id: intent.id,
+          label: intent.label,
+          score: SCORES.EXACT_PHRASE,
+          phrase:phrase
+        }
+      } else if( matchRatio < 1 ){
+        score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
       }
+
     }
 
     // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---

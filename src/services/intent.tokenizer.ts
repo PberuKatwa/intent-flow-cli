@@ -4,8 +4,7 @@ import { stemmer } from "../utils/stemmer";
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
   'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it','for',
-  'order'
+  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it','for'
 ]);
 
 type TokenizedOutput = {
