@@ -340,15 +340,4 @@ We welcome contributions! Here's how you can help:
 - Follow existing code style
 - Update README for significant changes
 
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/intent-flow-cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/intent-flow-cli/discussions)
-
----
-
-Built with ❤️ using TypeScript and Natural NLP
+Built using TypeScript and Natural NLP
