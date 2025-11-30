@@ -152,8 +152,8 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
   }
 
   if (bestIntent.score < SCORES.MIN_THRESHOLD) {
-    return { ...bestIntent, id: IntentType.UNKNOWN, label: "UNKNOWN",matchedFuzzyTokens, matchedStrongTokens, matchedWeakTokens };
+    return { ...bestIntent, id: IntentType.UNKNOWN, label: "UNKNOWN" };
   }
 
-  return bestIntent;
+  return { bestIntent , matchedFuzzyTokens, matchedStrongTokens, matchedWeakTokens };
 }
