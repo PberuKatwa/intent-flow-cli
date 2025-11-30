@@ -70,7 +70,7 @@ export function stemmer(word: string): string {
   
   let originalWord = word;
 
-  // Step 1a: Plurals
+  // Step 1a: Pluurals
   if (word.endsWith('sses')) {
     word = word.slice(0, -2);
   } else if (word.endsWith('ies')) {
