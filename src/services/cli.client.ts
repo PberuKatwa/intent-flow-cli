@@ -50,7 +50,7 @@ class CLiCLient{
         }
     }
 
-    private welcome():void {
+    private displayWelcome():void {
         try{
 
             console.log( chalk.green(`\n\n================================`) );
@@ -71,7 +71,7 @@ class CLiCLient{
         }
     }
 
-    private handleInput(text:string){
+    private handleInput(text:string):void{
         try{
 
             if(!text) return this.rl.prompt();
@@ -86,6 +86,10 @@ class CLiCLient{
             throw error
         }
         this.rl.prompt()
+    }
+
+    public start():void{
+        this.displayWelcome()
     }
 
 }
