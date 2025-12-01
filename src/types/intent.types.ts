@@ -13,3 +13,12 @@ export type IntentDefinition = {
     weakTokens:Array<string>;
 }
 
+export type BestIntent = {
+    id: string; 
+    label: string;
+    score: number; 
+    matchedPhrase?:string;
+    weakTokens?:Array<string>;
+    strongTokens?:Array<string>
+}
+
