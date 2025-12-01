@@ -1,5 +1,5 @@
 import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
-import { IntentDefinition, IntentType, BestIntent } from "../types/intent.types";
+import { IntentDefinition, BestIntent } from "../types/intent.types";
 const natural = require('natural'); 
 const getLevenshteinDistance = natural.LevenshteinDistance;
 
@@ -13,92 +13,101 @@ const SCORES = {
 };
 
 export function detectIntent(intents: Array<IntentDefinition>, message: string):BestIntent {
-  const { stemmedTokens } = tokenize(message);
 
-  const matchedStrongTokens:Array<string> = []
-  const matchedFuzzyTokens:Array<string>  = []
-  const matchedWeakTokens:Array<string>  = []
-  
-  let bestIntent:BestIntent = { 
-    id: "UNKNOWN", 
-    label: "UNKNOWN", 
-    score: 0, 
-    matchedPhrase:"UNKNOWN" 
-  };
-
-  for (const intent of intents) {
-    let score = 0;
-    const usedTokenIndices = new Set<number>();
+  try{
 
 
-    console.log("\n--------------------------------------------------");
-    console.log(`INTENT: ${intent.id} (${intent.label})`);
-    console.log("--------------------------------------------------");
+    const { stemmedTokens } = tokenize(message);
+
+    const matchedStrongTokens:Array<string> = []
+    const matchedFuzzyTokens:Array<string>  = []
+    const matchedWeakTokens:Array<string>  = []
     
+    let bestIntent:BestIntent = { 
+      id: "UNKNOWN", 
+      label: "UNKNOWN", 
+      score: 0, 
+      matchedPhrase:"UNKNOWN",
+      weakTokens:[],
+      strongTokens:[],
+      fuzzyTokens:[]
+    };
 
-    // --- 1. Phrase Matching (Normalized Jaccard) ---
-    // We treat phrases as "bags of stemmed words" to handle "order cancel" vs "cancel order"
-    for (const phrase of intent.phrases) {
+    for (const intent of intents) {
+      let score = 0;
+      const usedTokenIndices = new Set<number>();
 
-      const phraseTokens = tokenize(phrase).stemmedTokens;
 
-      let intersectionTokens = 0;
+      console.log("\n--------------------------------------------------");
+      console.log(`INTENT: ${intent.id} (${intent.label})`);
+      console.log("--------------------------------------------------");
+      
 
-      stemmedTokens.forEach(
-        function( token, index ){
+      // --- 1. Phrase Matching (Normalized Jaccard) ---
+      for (const phrase of intent.phrases) {
 
-          if(phraseTokens.includes(token)){
-            intersectionTokens ++
-            usedTokenIndices.add(index)
+        const phraseTokens = tokenize(phrase).stemmedTokens;
+        let intersectionTokens = 0;
+
+        stemmedTokens.forEach(
+          function( token, index ){
+
+            if(phraseTokens.includes(token)){
+              intersectionTokens ++
+              usedTokenIndices.add(index)
+            }
+
+          }
+        )
+
+        const matchRatio = ( intersectionTokens / phraseTokens.length )
+
+        if( matchRatio === 1 ){
+
+          return {
+            id: intent.id,
+            label: intent.label,
+            score: SCORES.EXACT_PHRASE,
+            matchedPhrase:phrase
           }
 
-        }
-      )
-
-      const matchRatio = ( intersectionTokens / phraseTokens.length )
-
-      if( matchRatio === 1 ){
-
-        return {
-          id: intent.id,
-          label: intent.label,
-          score: SCORES.EXACT_PHRASE,
-          matchedPhrase:phrase
+        } else if( matchRatio < 1 ){
+          score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
         }
 
-      } else if( matchRatio < 1 ){
-        score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
       }
 
-    }
+      // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
+      if(intent.strongTokens){
 
-    // --- 2. Strong Token Scoring (with Fuzzy Fallback) ---
-    if(intent.strongTokens){
+        for(const sToken of intent.strongTokens){
 
-      for(const sToken of intent.strongTokens){
+          let sTokenized = tokenizeSingleWord(sToken).stemmed
 
-        let sTokenized = tokenizeSingleWord(sToken).stemmed
+          for( let i = 0 ; i < stemmedTokens.length; i++ ){
 
-        for( let i = 0 ; i < stemmedTokens.length; i++ ){
+            const userToken = stemmedTokens[i]
 
-          const userToken = stemmedTokens[i]
+            if( usedTokenIndices.has(i) ) continue
 
-          if( usedTokenIndices.has(i) ) continue
+            if( userToken == sTokenized ){
 
-          if( userToken == sTokenized ){
+              score += SCORES.STRONG_TOKEN
+              usedTokenIndices.has(i)
+              matchedStrongTokens.push(userToken)
 
-            score += SCORES.STRONG_TOKEN
-            usedTokenIndices.has(i)
-            matchedStrongTokens.push(userToken)
+            } else{
 
-          } else{
+              const distance = getLevenshteinDistance( sTokenized, userToken )
 
-            const distance = getLevenshteinDistance( sTokenized, userToken )
+              if( distance <= 1 ){
 
-            if( distance <= 1 ){
-              score += SCORES.FUZZY_MATCH
-              usedTokenIndices.add(i)
-              matchedFuzzyTokens.push(sToken)
+                score += SCORES.FUZZY_MATCH
+                usedTokenIndices.add(i)
+                matchedFuzzyTokens.push(sToken)
+
+              }
+
             }
 
           }
@@ -107,26 +116,26 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
 
       }
 
-    }
+      // 3.Weak Token scoring
+      if(intent.weakTokens){
 
-    // 3.Weak Token scoring
-    if(intent.weakTokens){
+        for(const wToken of intent.weakTokens){
 
-      for(const wToken of intent.weakTokens){
+          let wTokenized = tokenizeSingleWord(wToken).stemmed
 
-        let wTokenized = tokenizeSingleWord(wToken).stemmed
+          for( let i = 0; i <  stemmedTokens.length; i++ ){
 
-        for( let i = 0; i <  stemmedTokens.length; i++ ){
+            const userToken = stemmedTokens[i]
 
-          const userToken = stemmedTokens[i]
+            if( usedTokenIndices.has(i) ) continue;
 
-          if( usedTokenIndices.has(i) ) continue;
+            if( userToken === wTokenized ){
 
-          if( userToken === wTokenized ){
+              score += SCORES.WEAK_TOKEN
+              matchedWeakTokens.push(wToken)
+              usedTokenIndices.add(i)
 
-            score += SCORES.WEAK_TOKEN
-            matchedWeakTokens.push(wToken)
-            usedTokenIndices.add(i)
+            }
 
           }
 
@@ -134,24 +143,32 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
 
       }
 
+      // 4.Update Best Score
+      if (score > bestIntent.score) {
+
+        bestIntent = {
+          id: intent.id,
+          label: intent.label,
+          score: score,
+          weakTokens:matchedWeakTokens,
+          strongTokens:matchedStrongTokens,
+          fuzzyTokens:matchedFuzzyTokens
+        };
+        
+      }
+
     }
 
-    // Update Best
-    if (score > bestIntent.score) {
+    if (bestIntent.score < SCORES.MIN_THRESHOLD) {
 
-      bestIntent = {
-        id: intent.id,
-        label: intent.label,
-        score: score,
-        matchedPhrase
-      };
+      bestIntent.id = "UNKNOWN";
+      bestIntent.label = "UNKNOWN"
+      return bestIntent;
       
     }
-  }
 
-  if (bestIntent.score < SCORES.MIN_THRESHOLD) {
-    return { ...bestIntent, id: IntentType.UNKNOWN, label: "UNKNOWN" };
+    return  bestIntent;
+  }catch(error){
+    throw error
   }
-
-  return { bestIntent , matchedFuzzyTokens, matchedStrongTokens, matchedWeakTokens };
 }
