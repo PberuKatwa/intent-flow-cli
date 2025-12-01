@@ -58,7 +58,7 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
 
         const matchRatio = ( intersectionTokens / phraseTokens.length )
 
-        if( matchRatio === 1 ){
+        if( matchRatio === 1 && phraseTokens.length > 1 ){
 
           return {
             id: intent.id,
@@ -67,7 +67,7 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
             matchedPhrase:phrase
           }
 
-        } else if( matchRatio < 1 && matchRatio > 0 && phraseTokens.length > 3 ){
+        } else if( matchRatio < 1 && matchRatio > 0 && phraseTokens.length > 2 ){
           score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
           matchedPartialTokens.push(phrase)
         }
