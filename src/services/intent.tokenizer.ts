@@ -5,7 +5,8 @@ const stemmer = natural.PorterStemmer.stem;
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
   'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it','for'
+  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it','for',
+  'my','order','flowers', 'flower'
 ]);
 
 type TokenizedOutput = {

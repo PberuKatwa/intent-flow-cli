@@ -1,5 +1,5 @@
 import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
-import { IntentDefinition, BestIntent } from "../types/intent.types";
+import { IntentDefinition, BestIntent, ReadOnlyIntentDefinition } from "../types/intent.types";
 const natural = require('natural'); 
 const getLevenshteinDistance = natural.LevenshteinDistance;
 
@@ -12,7 +12,7 @@ const SCORES = {
   PARTIAL_PHRASE_MULTIPLIER: 0.5
 };
 
-export function detectIntent(intents: Array<IntentDefinition>, message: string):BestIntent {
+export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: string):BestIntent {
 
   try{
 
@@ -67,7 +67,7 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
             matchedPhrase:phrase
           }
 
-        } else if( matchRatio < 1 && matchRatio > 0 ){
+        } else if( matchRatio < 1 && matchRatio > 0 && phraseTokens.length > 3 ){
           score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
           matchedPartialTokens.push(phrase)
         }
