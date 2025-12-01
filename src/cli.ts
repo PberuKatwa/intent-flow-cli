@@ -10,7 +10,10 @@ function startCli():void{
         const cliName:string = `INTENT FLOW CLI`;
         const promptMessage:string = `\nEnter your message > `;
 
+        const intent = loadIntentsFromFile(defaultPath)
+        const client = new CliClient( promptMessage ,cliName ,intent )
 
+        return client.start()
 
     }catch(error:any){
 
@@ -22,4 +25,6 @@ function startCli():void{
     }
 
 }
+
+startCli()
 
