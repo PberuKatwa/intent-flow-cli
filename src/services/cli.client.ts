@@ -18,6 +18,7 @@ class CLiCLient{
 
         this.cliName = cliName;
         this.intents = intents;
+        this.registerListeners();
     }
 
     private close():void {
@@ -42,10 +43,7 @@ class CLiCLient{
 
             })
 
-            this.rl.on("SIGINT", () => {
-                this.close();
-            });
-
+            this.rl.on("SIGINT", () => { this.close(); });
 
         }catch(error){
             throw error
@@ -57,7 +55,7 @@ class CLiCLient{
 
             console.log( chalk.green(`\n\n================================`) );
             console.log(chalk.green(`  WELCOME TO ${this.cliName}  `));
-            console.log(chalk.green`================================\n`);
+            console.log(chalk.green(`================================\n`) );
             
             console.log( chalk.bgGreen(`\n-- Available Intents --`) )
             this.intents.forEach(
@@ -76,9 +74,18 @@ class CLiCLient{
     private handleInput(text:string){
         try{
 
+            if(!text) return this.rl.prompt();
+
+            const result = detectIntent( this.intents, text )
+            console.log( chalk.bgCyanBright(`\n\n================================`) );
+            console.log( chalk.bgCyanBright( `\n[RESULT] Intent Flow Detection:`) );
+            console.log( chalk.bgCyanBright( `${JSON.stringify(result, null, 2)}` ) );
+            console.log( chalk.bgCyanBright(`================================\n`) );
+
         }catch(error){
             throw error
         }
+        this.rl.prompt()
     }
 
 }
