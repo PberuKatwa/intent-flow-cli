@@ -527,11 +527,6 @@ const chalk = await import('chalk');
 # If stemming doesn't work, ensure natural is properly installed
 npm install natural --save
 ```
-
-## License
-
-ISC License - see LICENSE file for details
-
 ## Links
 
 - **Repository**: [https://github.com/PberuKatwa/intent-flow-cli](https://github.com/PberuKatwa/intent-flow-cli)
@@ -540,4 +535,4 @@ ISC License - see LICENSE file for details
 
 ---
 
-**Built with ❤️ using TypeScript, Natural NLP, and modern JavaScript**
+**Built using TypeScript, Natural NLP, and modern JavaScript**
