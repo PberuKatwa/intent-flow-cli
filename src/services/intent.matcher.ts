@@ -1,6 +1,6 @@
+import natural from "natural"
 import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
 import { IntentDefinition, BestIntent, ReadOnlyIntentDefinition } from "../types/intent.types";
-const natural = require('natural'); 
 const getLevenshteinDistance = natural.LevenshteinDistance;
 
 const SCORES = {

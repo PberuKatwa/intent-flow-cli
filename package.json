@@ -2,10 +2,20 @@
   "name": "intentflowcli",
   "version": "1.0.0",
   "description": "A lightweight, pattern-based NLP intent classification engine for Node.js and TypeScript. Classify user input into predefined intents using regex patterns and token matching without external API dependencies.",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/cli.ts"
+    "start": "node --loader ts-node/esm src/cli.ts",
+    "dev": "node --loader ts-node/esm src/cli.ts"
   },
   "repository": {
     "type": "git",
@@ -19,6 +29,7 @@
   },
   "homepage": "https://github.com/PberuKatwa/intent-flow-cli#readme",
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
