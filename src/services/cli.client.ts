@@ -24,6 +24,19 @@ class CLiCLient{
     private welcome(){
         try{
 
+            console.log( chalk.green(`\n\n================================`) );
+            console.log(chalk.green(`  WELCOME TO ${this.cliName}  `));
+            console.log(chalk.green`================================\n`);
+            
+            console.log( chalk.bgGreen(`\n-- Available Intents --`) )
+            this.intents.forEach(
+                function(intent){
+                    return console.log( chalk.bgGreen( `  - ${intent.id}: ${intent.label}` ) )
+                }
+            )
+            console.log( chalk.bgGreen( `\n( Type "exit" or press Ctrl+C to quit )\n` ) );
+            this.rl.prompt();
+
         }catch(error){
             throw error
         }
