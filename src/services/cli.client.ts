@@ -21,7 +21,7 @@ class CLiCLient{
         // this.rl.on('line', this.handleInput.bind(this) )
     }
 
-    private welcome(){
+    private welcome():void {
         try{
 
             console.log( chalk.green(`\n\n================================`) );
@@ -42,13 +42,25 @@ class CLiCLient{
         }
     }
 
-    // handleInput(inputFunction){
-    //     try{
+    private registerListeners():void {
+        try{
 
-    //     }catch(error){
-    //         throw error
-    //     }
-    // }
+            this.rl.on("line", function(input:string){
+
+            })
+
+        }catch(error){
+            throw error
+        }
+    }
+
+    private handleInput(text:string){
+        try{
+
+        }catch(error){
+            throw error
+        }
+    }
 
 }
 
