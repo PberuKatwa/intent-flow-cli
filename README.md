@@ -1,41 +1,35 @@
-Intent Flow CLI
+# Intent Flow CLI
 
-A lightweight, pattern-based NLP intent classification engine for Node.js and TypeScript. Intent Flow CLI classifies user input into predefined intents using regex patterns, token matching, and fuzzy logic without external API dependencies.
+A powerful, flexible command-line tool for detecting user intent from natural language text. Intent Flow CLI uses advanced NLP techniques including tokenization, stemming, phrase matching, and fuzzy matching to accurately classify user messages into predefined intents.
 
-Features
+## Features
 
-Multi-layered Intent Matching: Combines exact phrase matching, strong/weak token scoring, and fuzzy matching (Levenshtein distance) for robust detection.
+- **Multi-layered Intent Matching**: Combines exact phrase matching, strong/weak token scoring, and fuzzy matching for robust intent detection
+- **Configurable Intent Definitions**: Easy-to-define intents with phrases, strong tokens, and weak tokens
+- **Smart Tokenization**: Porter Stemmer algorithm with stop word filtering for accurate text processing
+- **Interactive CLI**: Real-time intent detection with detailed match reporting
+- **Extensible Architecture**: Load custom intent definitions from JSON files
+- **Type-Safe**: Built with TypeScript and Zod schema validation
+- **Structured Logging**: Winston-powered logging for debugging and monitoring
 
-Robust Validation: Uses Zod schemas to ensure intent definition files are valid before loading.
+## Table of Contents
 
-Smart Tokenization: Implements Porter Stemmer algorithm with custom stop-word filtering.
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [How It Works](#how-it-works)
+- [Intent Definition](#intent-definition)
+- [Configuration](#configuration)
+- [Scoring System](#scoring-system)
+- [API Reference](#api-reference)
+- [Examples](#examples)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
 
-Structured Logging: Integrated Winston logger for debugging and error tracking.
+## Installation
 
-Interactive CLI: Real-time intent detection loop.
-
-Extensible: Load custom intent definitions from JSON files.
-
-Table of Contents
-
-Installation
-
-Quick Start
-
-Project Structure
-
-How It Works
-
-Intent Definition
-
-Scoring System
-
-Development
-
-Installation
-
+```bash
 # Clone the repository
-git clone [https://github.com/PberuKatwa/intent-flow-cli.git](https://github.com/PberuKatwa/intent-flow-cli.git)
+git clone https://github.com/PberuKatwa/intent-flow-cli.git
 
 # Navigate to project directory
 cd intent-flow-cli
@@ -46,194 +40,504 @@ npm install
 # Build the project
 npm run build
 
-
-Dependencies
-
-Core: natural, stemmer (NLP processing)
-
-Utilities: chalk (Terminal styling), winston (Logging)
-
-Validation: zod (Schema validation)
-
-Dev: typescript, ts-node
-
-Quick Start
-
-You can run the CLI directly in development mode:
-
-# Start the CLI using ts-node/esm loader
+# Run the CLI
 npm start
-# OR
+# or for development
 npm run dev
+```
 
+### Dependencies
 
-Interactive Session Example:
+- **natural** (v8.1.0): NLP library for stemming and string distance calculations
+- **chalk** (v5.6.2): Terminal string styling
+- **winston** (v3.18.3): Structured logging
+- **zod** (v4.1.13): Schema validation
+- **stemmer** (v2.0.1): Additional stemming support
+- **typescript** (v5.9.3): Type-safe JavaScript development
 
-INTENT FLOW CLI
-Enter your message
+## Quick Start
 
+```bash
+# Start the CLI
+npm start
+
+# Try some messages:
 > I want to order flowers
-[Detected: MAKE_ORDER] (Score: 10)
-
+> Where is my order?
 > How much do I owe?
-[Detected: PAY_FOR_ORDER] (Score: 10)
+> exit
+```
 
-> where is my package
-[Detected: TRACK_ORDER] (Score: 6.5)
-
-
-Project Structure
-
-src/
-├── cli.ts                        # Entry point
-├── files/
-│   └── default.json              # Default intent definitions
-├── services/
-│   ├── cli.client.ts             # CLI UI and Interaction loop
-│   ├── intent.definition.ts      # Intent Logic/Classes
-│   ├── intent.loader.ts          # File loading service
-│   ├── intent.matcher.ts         # Scoring & Matching Engine
-│   └── intent.tokenizer.ts       # Text normalization & Stemming
-├── types/
-│   └── intent.types.ts           # TypeScript Interfaces
-├── utils/
-│   └── logger.ts                 # Winston logger configuration
-└── validators/
-    └── intent.schema.ts          # Zod validation schemas
-
-
-How It Works
+## How It Works
 
 Intent Flow CLI processes user input through three main stages:
 
-1. Tokenization (intent.tokenizer.ts)
+### 1. Tokenization (`intent.tokenizer.ts`)
 
-The tokenizer cleans, normalizes, and stems input text. It filters out common stop words (e.g., 'the', 'is', 'for', 'my').
+The tokenizer cleans, normalizes, and stems input text using the Porter Stemmer algorithm:
 
+```typescript
 Input: "I want to order flowers"
-→ Cleaned: ["i", "want", "to", "order", "flowers"]
-→ Stemmed: ["want", "order", "flower"] // Stop words removed, stems applied
+→ Original Tokens: ["i", "want", "to", "order", "flowers"]
+→ Stemmed Tokens: ["want", "order", "flower"] // Stop words removed
+```
 
+**Features:**
+- Lowercase normalization
+- Punctuation removal
+- Stop word filtering (the, a, an, is, are, my, etc.)
+- Porter Stemmer algorithm for word stemming
+- Single word tokenization support
 
-2. Intent Matching (intent.matcher.ts)
+### 2. Intent Matching (`intent.matcher.ts`)
 
-The matcher calculates a score for every available intent based on the user's input.
+The matcher scores each intent definition against the input using multiple strategies:
 
-Phrase Matching (Highest Priority)
+#### Phrase Matching (Highest Priority)
+- Compares input against predefined phrases using normalized Jaccard similarity
+- **Exact match** (100% match with phrase length > 1): Returns immediately with score 10
+- **Partial match** (>0% match with phrase length > 2): Applies score with partial multiplier (0.5)
 
-Exact Match: Score 10.
+#### Strong Token Matching
+- Matches against high-confidence keywords
+- **Exact match**: +3 points
+- **Fuzzy match** (Levenshtein distance ≤ 1): +1.5 points
 
-Partial Match: If a significant portion of a phrase matches, a partial score is applied using a 0.5 multiplier.
+#### Weak Token Matching
+- Matches against supporting keywords
+- **Exact match**: +1 point
 
-Strong Token Matching
+#### Token Usage Prevention
+- Uses a `usedTokenIndices` set to prevent double-scoring of tokens
+- Each token can only contribute to one scoring category
 
-Exact Token Match: +3 points.
+### 3. Result Determination
 
-Fuzzy Match: If a word is within a Levenshtein distance of 1 (e.g., "ordr" vs "order"), it awards +1.5 points.
+The function returns a `BestIntent` object with detailed match information:
 
-Weak Token Matching
+```typescript
+{
+  id: "MAKE_ORDER",
+  label: "Make Order",
+  score: 8.5,
+  matchedPhrase: "place an order",
+  partialPhrases: [],
+  strongTokens: ["order"],
+  weakTokens: ["want", "flower"],
+  fuzzyTokens: []
+}
+```
 
-Exact Token Match: +1 point.
+Returns `UNKNOWN` if score < 4 (minimum threshold).
 
-3. Result Determination
+## Intent Definition
 
-The engine returns the BestIntent. If the highest score is below the Minimum Threshold (4), the system returns UNKNOWN.
+Intents are defined using the `IntentDefinition` interface with Zod validation:
 
-Intent Definition
+```typescript
+{
+  id: "MAKE_ORDER",           // Unique identifier
+  label: "Make Order",         // Human-readable label
+  
+  phrases: [                   // Exact or partial phrase matches
+    "place an order",
+    "make an order",
+    "i want to order",
+    "buy flowers"
+  ],
+  
+  strongTokens: [              // High-confidence keywords
+    "order", "buy", "purchase", "send", "place", "checkout", "book", "reserve"
+  ],
+  
+  weakTokens: [                // Supporting keywords
+    "want", "like", "need", "get", "give", "take", "flower", "flowers", 
+    "arrangement", "bouquet"
+  ]
+}
+```
 
-Intents are defined in JSON files (e.g., src/files/default.json). The structure is validated using Zod.
+### Built-in Intents
 
+The CLI comes with three example intents in `default.json`:
+
+| Intent ID | Purpose | Example Phrases |
+|-----------|---------|-----------------|
+| `MAKE_ORDER` | User wants to purchase | "place an order", "buy flowers", "i want to order" |
+| `TRACK_ORDER` | User checking delivery status | "where is my order", "track my order", "has my order arrived" |
+| `PAY_FOR_ORDER` | User inquiring about payment | "how much do i owe", "what do i need to pay", "payment due" |
+
+## Configuration
+
+### Loading Custom Intents
+
+Create a JSON file with your intent definitions:
+
+```json
 [
   {
-    "id": "MAKE_ORDER",
-    "label": "Make Order",
+    "id": "CANCEL_ORDER",
+    "label": "Cancel Order",
     "phrases": [
-      "place an order",
-      "i want to order"
+      "cancel my order",
+      "i want to cancel",
+      "stop my order"
     ],
-    "strongTokens": ["order", "buy", "purchase"],
-    "weakTokens": ["want", "need", "flower"]
+    "strongTokens": ["cancel", "stop", "abort", "terminate"],
+    "weakTokens": ["order", "purchase", "don't", "want"]
   }
 ]
+```
 
+Load it in your code:
 
-Scoring System
+```typescript
+import { loadIntentsFromFile } from './services/intent.loader';
 
-The scoring constants are defined in src/services/intent.matcher.ts:
+const customIntents = loadIntentsFromFile('./path/to/intents.json');
+const result = detectIntent(customIntents, userMessage);
+```
 
-Match Type
+### Adjusting Scoring Parameters
 
-Score
+Modify the scoring constants in `services/intent.matcher.ts`:
 
-Description
+```typescript
+const SCORES = {
+  EXACT_PHRASE: 10,              // Full phrase match
+  STRONG_TOKEN: 3,               // Strong keyword match
+  WEAK_TOKEN: 1,                 // Weak keyword match
+  FUZZY_MATCH: 1.5,              // Fuzzy string match (Levenshtein ≤ 1)
+  MIN_THRESHOLD: 4,              // Minimum score for detection
+  PARTIAL_PHRASE_MULTIPLIER: 0.5 // Multiplier for partial phrase matches
+};
+```
 
-Exact Phrase
+### Stop Words Configuration
 
-10
+Customize stop words in `services/intent.tokenizer.ts`:
 
-Perfect match with a defined phrase.
+```typescript
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
+  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it', 'for', 'my'
+]);
+```
 
-Strong Token
+## Scoring System
 
-3
+### Score Calculation Example
 
-Exact match with a high-value keyword.
+**Input**: "I need to buy flowers"
 
-Fuzzy Match
+**Processing**:
+1. Tokenize → `["need", "buy", "flower"]`
+2. Check phrases:
+   - "buy flowers" → 2/2 tokens match → 100% match ratio → +10 points (exact match)
+3. Return immediately with `MAKE_ORDER`
 
-1.5
+**Alternative Input**: "want to get some flowers"
 
-Strong token match with typo (Distance ≤ 1).
+1. Tokenize → `["want", "get", "flower"]`
+2. Check phrases → No exact matches, no partial matches with >2 tokens
+3. Strong tokens:
+   - "get" ≈ "buy" (Levenshtein distance = 3) → No score
+4. Weak tokens:
+   - "want" → +1
+   - "flower" → +1
+5. **Total**: 2 points → Below threshold (4) → `UNKNOWN`
 
-Weak Token
+**Complex Input**: "I'd like to place an order"
 
-1
+1. Tokenize → `["like", "place", "order"]`
+2. Check phrases:
+   - "place an order" → 2/3 tokens match (66.7%) → Partial match → +3.35 points
+3. Strong tokens:
+   - "place" → Already used in phrase matching (skipped)
+   - "order" → Already used in phrase matching (skipped)
+4. Weak tokens:
+   - "like" → +1
+5. **Total**: 4.35 points → Above threshold → `MAKE_ORDER`
 
-Match with a supporting keyword.
+## API Reference
 
-Threshold
+### `tokenize(text: string): TokenizedOutput`
 
-4
+Tokenizes and stems input text, filtering out stop words.
 
-Minimum score required to classify intent.
+```typescript
+const result = tokenize("I want to order");
+// Returns:
+// {
+//   originalTokens: ["i", "want", "to", "order"],
+//   stemmedTokens: ["want", "order"]
+// }
+```
 
-Calculation Example
+### `tokenizeSingleWord(text: string): SingleTokenOutput`
 
-Intent Definition:
+Tokenizes a single word with stop word detection.
 
-Strong: ["cancel"]
+```typescript
+const result = tokenizeSingleWord("ordering");
+// Returns:
+// {
+//   original: "ordering",
+//   stemmed: "order",
+//   isStopWord: false
+// }
+```
 
-Weak: ["order"]
+### `detectIntent(intents: ReadOnlyIntentDefinition[], message: string): BestIntent`
 
-Input: "Cancl order"
+Detects the best matching intent for a message.
 
-Tokenize: ["cancl", "order"]
+```typescript
+const result = detectIntent(allIntents, "track my order");
+// Returns:
+// {
+//   id: "TRACK_ORDER",
+//   label: "Track Order",
+//   score: 10,
+//   matchedPhrase: "track my order",
+//   partialPhrases: [],
+//   strongTokens: ["track"],
+//   weakTokens: ["my"],
+//   fuzzyTokens: []
+// }
+```
 
-Match:
+### `loadIntentsFromFile(filePath: string): IntentDefinition[]`
 
-"cancl" ≈ "cancel" (Fuzzy match): +1.5
+Loads and validates intent definitions from a JSON file using Zod schema validation.
 
-"order" == "order" (Weak match): +1.0
+```typescript
+const intents = loadIntentsFromFile('./files/custom.json');
+```
 
-Total Score: 2.5
+## Examples
 
-Result: UNKNOWN (Score < 4.0 threshold)
+### Example 1: E-commerce Bot
 
-Development
+```typescript
+const ecommerceIntents = [
+  {
+    id: "ADD_TO_CART",
+    label: "Add to Cart",
+    phrases: ["add to cart", "put in basket", "add this"],
+    strongTokens: ["add", "cart", "basket"],
+    weakTokens: ["want", "like", "this", "item"]
+  },
+  {
+    id: "CHECK_PRICE",
+    label: "Check Price",
+    phrases: ["how much", "what's the price", "cost of"],
+    strongTokens: ["price", "cost", "much", "expensive"],
+    weakTokens: ["how", "what", "tell", "show"]
+  }
+];
 
-Scripts
+detectIntent(ecommerceIntents, "add this to my cart");
+// Returns: ADD_TO_CART with high confidence
+```
 
-npm run build: Compiles TypeScript to dist/.
+### Example 2: Customer Support Bot
 
-npm start: Runs the CLI from source using ts-node/esm.
+```typescript
+const supportIntents = [
+  {
+    id: "REPORT_BUG",
+    label: "Report Bug",
+    phrases: ["report a bug", "something is broken", "not working"],
+    strongTokens: ["bug", "broken", "error", "issue", "crash"],
+    weakTokens: ["report", "problem", "not", "working", "help"]
+  },
+  {
+    id: "REQUEST_FEATURE",
+    label: "Request Feature",
+    phrases: ["add a feature", "i want a feature", "can you add"],
+    strongTokens: ["feature", "add", "request", "want", "need"],
+    weakTokens: ["new", "would", "like", "could"]
+  }
+];
+```
 
-npm run dev: Alias for start.
+### Example 3: Restaurant Booking Bot
 
-adding New Intents
+```typescript
+const restaurantIntents = [
+  {
+    id: "BOOK_TABLE",
+    label: "Book Table",
+    phrases: ["book a table", "make a reservation", "reserve a table"],
+    strongTokens: ["book", "reserve", "table", "reservation"],
+    weakTokens: ["want", "need", "for", "people", "tonight"]
+  },
+  {
+    id: "CHECK_MENU",
+    label: "Check Menu",
+    phrases: ["show menu", "what's on the menu", "see the menu"],
+    strongTokens: ["menu", "food", "dishes", "options"],
+    weakTokens: ["show", "see", "what", "have"]
+  }
+];
+```
 
-Modify src/files/default.json.
+## Project Structure
 
-Ensure your JSON matches the schema in src/validators/intent.schema.ts.
+```
+intent-flow-cli/
+├── src/
+│   ├── cli.ts                     # Main CLI entry point
+│   ├── services/
+│   │   ├── cli.client.ts          # CLI client interface
+│   │   ├── intent.definition.ts   # Built-in intent definitions
+│   │   ├── intent.tokenizer.ts    # Tokenization & stemming logic
+│   │   ├── intent.matcher.ts      # Intent matching algorithm
+│   │   └── intent.loader.ts       # JSON intent file loader
+│   ├── types/
+│   │   └── intent.types.ts        # TypeScript type definitions
+│   ├── utils/
+│   │   └── logger.ts              # Winston logger configuration
+│   ├── validators/
+│   │   └── intent.schema.ts       # Zod validation schemas
+│   └── files/
+│       └── default.json            # Default intent definitions
+├── dist/                           # Compiled JavaScript output
+├── package.json
+├── tsconfig.json
+└── README.md
+```
 
-Restart the CLI.
+## Type Definitions
 
+### IntentDefinition
+```typescript
+interface IntentDefinition {
+  id: string;
+  label: string;
+  phrases: string[];
+  strongTokens?: string[];
+  weakTokens?: string[];
+}
+```
+
+### BestIntent
+```typescript
+interface BestIntent {
+  id: string;
+  label: string;
+  score: number;
+  matchedPhrase?: string;
+  partialPhrases?: string[];
+  strongTokens?: string[];
+  weakTokens?: string[];
+  fuzzyTokens?: string[];
+}
+```
+
+### TokenizedOutput
+```typescript
+interface TokenizedOutput {
+  originalTokens: string[];
+  stemmedTokens: string[];
+}
+```
+
+## Development
+
+### Scripts
+
+```bash
+# Build TypeScript to JavaScript
+npm run build
+
+# Start CLI (production)
+npm start
+
+# Start CLI (development with ts-node)
+npm run dev
+
+# Run tests
+npm test
+```
+
+### ESM Configuration
+
+This project uses ES Modules (ESM). Key configuration details:
+
+**package.json:**
+```json
+{
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}
+```
+
+**tsconfig.json:**
+```json
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2020"
+  }
+}
+```
+
+## Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'Add amazing feature'`
+4. **Push to the branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+### Development Guidelines
+
+- Write clear, documented code
+- Add Zod schemas for new data structures
+- Follow existing code style (ESM imports, TypeScript strict mode)
+- Update README for significant changes
+- Use Winston logger for all logging
+- Validate inputs with Zod schemas
+
+## Troubleshooting
+
+### Common Issues
+
+**ESM Import Errors:**
+```bash
+# Make sure you're using Node.js 18+ and have "type": "module" in package.json
+node --version  # Should be >= 18.0.0
+```
+
+**Chalk Import Issues:**
+```bash
+# Chalk v5+ is ESM-only. Use dynamic import if needed:
+const chalk = await import('chalk');
+```
+
+**Natural Library Issues:**
+```bash
+# If stemming doesn't work, ensure natural is properly installed
+npm install natural --save
+```
+
+## License
+
+ISC License - see LICENSE file for details
+
+## Links
+
+- **Repository**: [https://github.com/PberuKatwa/intent-flow-cli](https://github.com/PberuKatwa/intent-flow-cli)
+- **Issues**: [https://github.com/PberuKatwa/intent-flow-cli/issues](https://github.com/PberuKatwa/intent-flow-cli/issues)
+- **Natural NLP**: [https://github.com/NaturalNode/natural](https://github.com/NaturalNode/natural)
+
+---
+
+**Built with ❤️ using TypeScript, Natural NLP, and modern JavaScript**
