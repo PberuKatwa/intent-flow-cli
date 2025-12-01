@@ -19,6 +19,7 @@ export type BestIntent = {
     score: number; 
     matchedPhrase?:string;
     weakTokens?:Array<string>;
-    strongTokens?:Array<string>
+    strongTokens?:Array<string>;
+    fuzzyTokens?:Array<string>;
 }
 

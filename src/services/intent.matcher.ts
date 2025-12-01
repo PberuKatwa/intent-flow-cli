@@ -1,5 +1,5 @@
 import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
-import { IntentDefinition, IntentType } from "../types/intent.types";
+import { IntentDefinition, IntentType, BestIntent } from "../types/intent.types";
 const natural = require('natural'); 
 const getLevenshteinDistance = natural.LevenshteinDistance;
 
@@ -12,31 +12,29 @@ const SCORES = {
   PARTIAL_PHRASE_MULTIPLIER: 0.5
 };
 
-export function detectIntent(intents: Array<IntentDefinition>, message: string) {
+export function detectIntent(intents: Array<IntentDefinition>, message: string):BestIntent {
   const { stemmedTokens } = tokenize(message);
 
   const matchedStrongTokens:Array<string> = []
   const matchedFuzzyTokens:Array<string>  = []
   const matchedWeakTokens:Array<string>  = []
   
-  let bestIntent = { 
+  let bestIntent:BestIntent = { 
     id: "UNKNOWN", 
     label: "UNKNOWN", 
     score: 0, 
-    matchedPhrase: null as string | null 
+    matchedPhrase:"UNKNOWN" 
   };
 
   for (const intent of intents) {
     let score = 0;
-    let matchedPhrase = null;
+    const usedTokenIndices = new Set<number>();
+
 
     console.log("\n--------------------------------------------------");
     console.log(`INTENT: ${intent.id} (${intent.label})`);
     console.log("--------------------------------------------------");
     
-    // Set of indices in user input that have been "used" to prevent double scoring
-    const usedTokenIndices = new Set<number>();
-    let tokenList = stemmedTokens
 
     // --- 1. Phrase Matching (Normalized Jaccard) ---
     // We treat phrases as "bags of stemmed words" to handle "order cancel" vs "cancel order"
@@ -65,7 +63,7 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string) 
           id: intent.id,
           label: intent.label,
           score: SCORES.EXACT_PHRASE,
-          phrase:phrase
+          matchedPhrase:phrase
         }
 
       } else if( matchRatio < 1 ){
