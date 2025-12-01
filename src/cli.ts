@@ -11,7 +11,7 @@ function startCli():void{
         const __dirname = dirname(__filename);
         const defaultPath = path.join(__dirname,"files","default.json")
         const cliName:string = `INTENT FLOW CLI`;
-        const promptMessage:string = `\nEnter your message > `;
+        const promptMessage:string = `\nEnter your message`;
 
         const intent = loadIntentsFromFile(defaultPath)
         const client = new CliClient( promptMessage ,cliName ,intent )

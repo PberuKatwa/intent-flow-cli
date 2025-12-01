@@ -1,9 +1,9 @@
 import * as readline from 'readline';
 import chalk from "chalk";
-import { detectIntent } from "./intent.matcher";
-import { ReadOnlyIntentDefinition } from "../types/intent.types"
+import { detectIntent } from "./intent.matcher.js";
+import { ReadOnlyIntentDefinition } from "../types/intent.types.js"
 
-class CLiCLient{
+class CLiClient{
     private readonly rl:readline.Interface;
     private readonly  cliName:string;
     private readonly intents:ReadOnlyIntentDefinition[];
@@ -13,7 +13,7 @@ class CLiCLient{
         this.rl = readline.createInterface({
             input:process.stdin,
             output:process.stdout,
-            prompt:chalk.blue(`${promptMessage} ==>`)
+            prompt:chalk.cyan.bold(`${promptMessage} ❯ `)
         });
 
         this.cliName = cliName;
@@ -23,7 +23,10 @@ class CLiCLient{
 
     private close():void {
         try{
-            console.log( chalk.blue(`\nSuccessfully shut down ${this.cliName}`) )
+            console.log(chalk.yellow('\n╭─────────────────────────────────────╮'));
+            console.log(chalk.yellow('│ ') + chalk.white('Shutting down gracefully... 👋     ') + chalk.yellow('│'));
+            console.log(chalk.yellow('╰─────────────────────────────────────╯'));
+            console.log(chalk.dim(`  Thanks for using ${chalk.cyan.bold(this.cliName)}!\n`));
             this.rl.close()
             process.exit(0)
         }catch(error){
@@ -52,18 +55,26 @@ class CLiCLient{
 
     private displayWelcome():void {
         try{
-
-            console.log( chalk.green(`\n\n================================`) );
-            console.log(chalk.green(`  WELCOME TO ${this.cliName}  `));
-            console.log(chalk.green(`================================\n`) );
+            console.clear();
+            console.log(chalk.magenta.bold('\n╔═══════════════════════════════════════════════╗'));
+            console.log(chalk.magenta.bold('║') + chalk.cyan.bold('                                               ') + chalk.magenta.bold('║'));
+            console.log(chalk.magenta.bold('║') + chalk.cyan.bold('     🚀  ') + chalk.white.bold(this.cliName.padEnd(32)) + chalk.cyan.bold('  🚀     ') + chalk.magenta.bold('║'));
+            console.log(chalk.magenta.bold('║') + chalk.dim('   Pattern-based NLP Intent Classifier        ') + chalk.magenta.bold('║'));
+            console.log(chalk.magenta.bold('║') + chalk.cyan.bold('                                               ') + chalk.magenta.bold('║'));
+            console.log(chalk.magenta.bold('╚═══════════════════════════════════════════════╝\n'));
             
-            console.log( chalk.bgGreen(`\n-- Available Intents --`) )
-            this.intents.forEach(
-                function(intent){
-                    return console.log( chalk.bgGreen( `  - ${intent.id}: ${intent.label}` ) )
-                }
-            )
-            console.log( chalk.bgGreen( `\n( Type "exit" or press Ctrl+C to quit )\n` ) );
+            console.log(chalk.yellow.bold('  ⚡ Available Intents') + chalk.dim(` (${this.intents.length} loaded)`) + '\n');
+            console.log(chalk.dim('  ┌────────────────────────────────────────────┐'));
+            
+            this.intents.forEach((intent, index) => {
+                const num = chalk.yellow(`${index + 1}.`.padStart(4));
+                console.log(chalk.dim('  │ ') + num + ' ' + chalk.cyan.bold(intent.id.padEnd(18)) + chalk.gray('→ ') + chalk.white(intent.label));
+            });
+            
+            console.log(chalk.dim('  └────────────────────────────────────────────┘\n'));
+            console.log(chalk.dim('  💡 Type ') + chalk.cyan.bold('exit') + chalk.dim(' or press Ctrl+C to quit\n'));
+            console.log(chalk.gray('─'.repeat(50)) + '\n');
+            
             this.rl.prompt();
 
         }catch(error){
@@ -77,10 +88,16 @@ class CLiCLient{
             if(!text) return this.rl.prompt();
 
             const result = detectIntent( this.intents, text )
-            console.log( chalk.bgCyanBright(`\n\n================================`) );
-            console.log( chalk.bgCyanBright( `\n[RESULT] Intent Flow Detection:`) );
-            console.log( chalk.bgCyanBright( `${JSON.stringify(result, null, 2)}` ) );
-            console.log( chalk.bgCyanBright(`================================\n`) );
+            console.log(chalk.green('\n  ╭───────────────────────────────────────────────╮'));
+            console.log(chalk.green('  │ ') + chalk.bold('🎯 Intent Detection Result') + '                   ' + chalk.green('│'));
+            console.log(chalk.green('  ╰───────────────────────────────────────────────╯\n'));
+            console.log(chalk.dim('    Full Response:'));
+            console.log(chalk.dim('    ┌──────────────────────────────────────────'));
+            const jsonStr = JSON.stringify(result, null, 2);
+            jsonStr.split('\n').forEach(line => {
+                console.log(chalk.dim('    │ ') + chalk.cyan(line));
+            });
+            console.log(chalk.dim('    └──────────────────────────────────────────\n'));
 
         }catch(error){
             throw error
@@ -94,4 +111,4 @@ class CLiCLient{
 
 }
 
-export default CLiCLient;
+export default CLiClient;
