@@ -18,7 +18,38 @@ class CLiCLient{
 
         this.cliName = cliName;
         this.intents = intents;
-        // this.rl.on('line', this.handleInput.bind(this) )
+    }
+
+    private close():void {
+        try{
+            console.log( chalk.blue(`\nSuccessfully shut down ${this.cliName}`) )
+            this.rl.close()
+            process.exit(0)
+        }catch(error){
+            throw error
+        }
+    }
+
+    private registerListeners():void {
+        try{
+
+            this.rl.on("line", (input:string) => {
+
+                const trimmed = input.trim();
+                if( trimmed === "exit" ) return this.close();
+                this.handleInput(trimmed)
+                this.rl.prompt()
+
+            })
+
+            this.rl.on("SIGINT", () => {
+                this.close();
+            });
+
+
+        }catch(error){
+            throw error
+        }
     }
 
     private welcome():void {
@@ -36,18 +67,6 @@ class CLiCLient{
             )
             console.log( chalk.bgGreen( `\n( Type "exit" or press Ctrl+C to quit )\n` ) );
             this.rl.prompt();
-
-        }catch(error){
-            throw error
-        }
-    }
-
-    private registerListeners():void {
-        try{
-
-            this.rl.on("line", function(input:string){
-
-            })
 
         }catch(error){
             throw error
