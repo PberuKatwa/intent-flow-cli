@@ -13,6 +13,8 @@ export type IntentDefinition = {
     weakTokens:readonly string[];
 }
 
+export type ReadOnlyIntentDefinition = Readonly<IntentDefinition>
+
 export type BestIntent = {
     id: string; 
     label: string;
