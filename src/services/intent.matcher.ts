@@ -140,7 +140,7 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
 
       }
 
-      // 4.Update Best Score
+      // 4.Updaate Best Score
       if (score > bestIntent.score) {
 
         bestIntent = {
