@@ -22,12 +22,14 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
     const matchedStrongTokens:Array<string> = []
     const matchedFuzzyTokens:Array<string>  = []
     const matchedWeakTokens:Array<string>  = []
+    const matchedPartialTokens:Array<string> = []
     
     let bestIntent:BestIntent = { 
       id: "UNKNOWN", 
       label: "UNKNOWN", 
       score: 0, 
       matchedPhrase:"UNKNOWN",
+      partialPhrases:[],
       weakTokens:[],
       strongTokens:[],
       fuzzyTokens:[]
@@ -71,8 +73,9 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
             matchedPhrase:phrase
           }
 
-        } else if( matchRatio < 1 ){
+        } else if( matchRatio < 1 && matchRatio > 0 ){
           score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
+          matchedPartialTokens.push(phrase)
         }
 
       }
@@ -150,6 +153,7 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
           id: intent.id,
           label: intent.label,
           score: score,
+          partialPhrases:matchedPartialTokens,
           weakTokens:matchedWeakTokens,
           strongTokens:matchedStrongTokens,
           fuzzyTokens:matchedFuzzyTokens
