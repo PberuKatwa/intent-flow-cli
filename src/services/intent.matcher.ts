@@ -39,12 +39,6 @@ export function detectIntent(intents: Array<IntentDefinition>, message: string):
       let score = 0;
       const usedTokenIndices = new Set<number>();
 
-
-      console.log("\n--------------------------------------------------");
-      console.log(`INTENT: ${intent.id} (${intent.label})`);
-      console.log("--------------------------------------------------");
-      
-
       // --- 1. Phrase Matching (Normalized Jaccard) ---
       for (const phrase of intent.phrases) {
 

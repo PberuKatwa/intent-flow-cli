@@ -9,8 +9,8 @@ export type IntentDefinition = {
     id:string;
     label:string;
     phrases:Array < string >;
-    strongTokens:Array<string>
-    weakTokens:Array<string>;
+    strongTokens: readonly string[];
+    weakTokens:readonly string[];
 }
 
 export type BestIntent = {
