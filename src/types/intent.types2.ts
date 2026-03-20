@@ -24,9 +24,7 @@ export type BestIntent = {
   name: string;
   score: number;
 
-  matchedPhrase?: string;
-
-  partialPhrases?: string[];
+  phraseTokens?: string[];
 
   actionTokens?: string[];
   objectTokens?: string[];

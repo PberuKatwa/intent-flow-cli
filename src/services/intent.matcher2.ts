@@ -23,15 +23,20 @@ export class IntentDetectorService {
     private readonly stopWords:Set<string>
   ) {}
 
-  private scorePhrases(stemmedTokens: string[], phraseTokens: string[], usedTokenIndices: Set<number>):
+  private scorePhrases(
+    phraseTokens: string[],
+    stemmedTokens: string[],
+    usedTokenIndices: Set<number>
+  ):
     {
-      matchedPhrases: string[],
+      matchedPhraseTokens: string[],
       score: number,
       usedTokenIndices: Set<number>
     }
     {
     try {
-
+      let currScore = 0;
+      const matchedPhraseTokens = []
       for (const phrase of phraseTokens) {
 
         const phraseTokens = this.tokenize(phrase).stemmedTokens;
@@ -46,31 +51,30 @@ export class IntentDetectorService {
 
         const matchRatio = intersectionTokens / phraseTokens.length;
 
-        // ✅ Exact phrase
         if (matchRatio === 1 && phraseTokens.length > 1) {
           console.log(`   ✅ EXACT PHRASE MATCH: "${phrase}"`);
           return {
-            id: intent.id,
-            name: intent.name,
+            matchedPhraseTokens: phraseTokens,
             score: this.SCORES.EXACT_PHRASE,
-            matchedPhrase: phrase
+            usedTokenIndices
           };
         }
 
-        // 🔸 Partial phrase
+        // Partial phrase
         if (matchRatio > 0 && matchRatio < 1 && phraseTokens.length > 2) {
-          const partialScore =
-            this.SCORES.EXACT_PHRASE *
-            matchRatio *
-            this.SCORES.PARTIAL_PHRASE_MULTIPLIER;
+          const partialScore = this.SCORES.EXACT_PHRASE * matchRatio * this.SCORES.PARTIAL_PHRASE_MULTIPLIER;
 
-          score += partialScore;
-          matchedPartial.push(phrase);
+          currScore += partialScore;
+          matchedPhraseTokens.push(phrase);
 
-          console.log(
-            `   🔸 Partial Phrase: "${phrase}" (+${partialScore.toFixed(2)})`
-          );
+          console.log(`Partial Phrase: "${phrase}" (+${partialScore.toFixed(2)})`);
         }
+      }
+
+      return {
+        matchedPhraseTokens,
+        score:currScore,
+        usedTokenIndices
       }
 
     } catch (error) {
@@ -143,6 +147,8 @@ export class IntentDetectorService {
           );
         }
       }
+
+      const { } = this.scorePhrases(intent.phrase_tokens, stemmedTokens, usedTokenIndices, score);
 
       // -------------------------
       // 2. ACTION TOKEN MATCHING
@@ -259,8 +265,7 @@ export class IntentDetectorService {
       id: 0,
       name: "UNKNOWN",
       score: 0,
-      matchedPhrase: "UNKNOWN",
-      partialPhrases: [],
+      phraseTokens: [],
       actionTokens: [],
       objectTokens: [],
       fuzzyTokens: []
