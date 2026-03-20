@@ -1,5 +1,4 @@
 import natural from "natural";
-import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
 import { BestIntent, ReadOnlyIntentDefinition } from "../types/intent.types2";
 const getLevenshteinDistance = natural.LevenshteinDistance;
 const stemmer = natural.PorterStemmer.stem;
@@ -35,7 +34,7 @@ export class IntentDetectorService {
 
       for (const phrase of phraseTokens) {
 
-        const phraseTokens = tokenize(phrase).stemmedTokens;
+        const phraseTokens = this.tokenize(phrase).stemmedTokens;
         let intersectionTokens = 0;
 
         stemmedTokens.forEach((token, index) => {
@@ -83,7 +82,7 @@ export class IntentDetectorService {
    * Main detection entry point
    */
   public processIntent(message: string): BestIntent {
-    const { stemmedTokens, originalTokens } = tokenize(message);
+    const { stemmedTokens, originalTokens } = this.tokenize(message);
 
     console.log(`\n🔍 [TOKENIZATION]`);
     console.log(`   Original: [${originalTokens.join(", ")}]`);
@@ -106,7 +105,7 @@ export class IntentDetectorService {
       // 1. PHRASE MATCHING
       // -------------------------
       for (const phrase of intent.phrase_tokens) {
-        const phraseTokens = tokenize(phrase).stemmedTokens;
+        const phraseTokens = this.tokenize(phrase).stemmedTokens;
         let intersectionTokens = 0;
 
         stemmedTokens.forEach((token, index) => {
@@ -149,7 +148,7 @@ export class IntentDetectorService {
       // 2. ACTION TOKEN MATCHING
       // -------------------------
       for (const aToken of intent.action_tokens || []) {
-        const aStem = tokenizeSingleWord(aToken).stemmed;
+        const aStem = this.tokenizeSingleWord(aToken).stemmed;
 
         for (let i = 0; i < stemmedTokens.length; i++) {
           if (usedTokenIndices.has(i)) continue;
@@ -178,7 +177,7 @@ export class IntentDetectorService {
       // 3. OBJECT TOKEN MATCHING
       // -------------------------
       for (const oToken of intent.object_tokens || []) {
-        const oStem = tokenizeSingleWord(oToken).stemmed;
+        const oStem = this.tokenizeSingleWord(oToken).stemmed;
 
         for (let i = 0; i < stemmedTokens.length; i++) {
           if (usedTokenIndices.has(i)) continue;
@@ -255,9 +254,6 @@ export class IntentDetectorService {
     return finalResult;
   }
 
-  // -------------------------
-  // DEFAULT INTENT
-  // -------------------------
   private getInitialBestIntent(): BestIntent {
     return {
       id: 0,
