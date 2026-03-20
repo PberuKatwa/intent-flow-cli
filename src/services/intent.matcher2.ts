@@ -26,60 +26,49 @@ export class IntentDetectorService {
     matchedPhraseTokens: string[],
     phraseScore: number,
     usedPhraseTokenIndices: Set<number>,
-    isExactMatch:boolean
+    isExactMatch: boolean
   } {
     try {
-
-      console.log("\n🔍 [PHRASE SCORING START]");
-      console.log(`   User Tokens: [${stemmedTokens.join(", ")}]`);
-
       let currScore = 0;
       const matchedPhraseTokens: string[] = [];
-      let usedTokenIndices = new Set<number>();
+      const usedTokenIndices = new Set<number>();
 
       for (const phrase of phraseTokens) {
         const phraseTokenized = this.tokenize(phrase).stemmedTokens;
 
-        let intersectionTokens = 0;
-        const matchedIndexes: number[] = [];
+        if (matchedPhraseTokens.includes(phrase)) continue;
 
-        stemmedTokens.forEach((token, index) => {
+        let intersectionTokens = 0;
+        const newlyMatchedIndices: number[] = [];
+
+        for (let i = 0; i < stemmedTokens.length; i++) {
+          if (usedTokenIndices.has(i)) {
+            continue;
+          }
+
+          const token = stemmedTokens[i];
+
           if (phraseTokenized.includes(token)) {
             intersectionTokens++;
-            usedTokenIndices.add(index);
-            matchedIndexes.push(index);
+            newlyMatchedIndices.push(i);
           }
-        });
+        }
+
+        if (intersectionTokens === 0 || phraseTokenized.length === 0) continue;
+        newlyMatchedIndices.forEach(idx => usedTokenIndices.add(idx));
 
         const matchRatio = intersectionTokens / phraseTokenized.length;
 
-        if (stemmedTokens.length === 1 && matchRatio === 1) {
+        if (matchRatio === 1) {
           return {
-            matchedPhraseTokens: phraseTokenized,
+            matchedPhraseTokens: [phrase],
             phraseScore: this.SCORES.EXACT_PHRASE,
             usedPhraseTokenIndices: usedTokenIndices,
-            isExactMatch:true
-          };
-
-        }
-
-        if (matchRatio === 1 && phraseTokenized.length > 1) {
-
-          return {
-            matchedPhraseTokens: phraseTokenized,
-            phraseScore: this.SCORES.EXACT_PHRASE,
-            usedPhraseTokenIndices: usedTokenIndices,
-            isExactMatch:true
+            isExactMatch: true
           };
         }
 
-        if (matchRatio === 1 && stemmedTokens.length > 1 ) {
-          currScore = this.SCORES.EXACT_PHRASE
-        }
-
-        // 🔸 PARTIAL MATCH
-        if (matchRatio > 0 && phraseTokenized.length > 2) {
-
+        if (matchRatio > 0) {
           const partialScore =
             this.SCORES.EXACT_PHRASE *
             matchRatio *
@@ -88,19 +77,14 @@ export class IntentDetectorService {
           currScore += partialScore;
           matchedPhraseTokens.push(phrase);
         }
-
       }
 
-      console.log("\n📊 [PHRASE SCORING COMPLETE]");
-      console.log(`   Total Phrase Score: ${currScore.toFixed(2)}`);
-      console.log(`   Matched Phrases: [${matchedPhraseTokens.join(" | ")}]`);
-      console.log(`   Used Indices: [${[...usedTokenIndices].join(", ")}]`);
 
       return {
         matchedPhraseTokens,
         phraseScore: currScore,
         usedPhraseTokenIndices: usedTokenIndices,
-        isExactMatch:false
+        isExactMatch: false
       };
 
     } catch (error) {

@@ -325,7 +325,8 @@
         "hello there",
         "good morning",
         "good afternoon",
-        "good evening"
+        "good evening",
+        "how are you doing"
       ],
       "action_tokens": [],
       "object_tokens": []
