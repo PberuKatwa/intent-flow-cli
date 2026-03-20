@@ -90,8 +90,76 @@ export class IntentDetectorService {
     stemmedTokens:string[],
     actionTokens: string[],
     objectTokens: string[],
-  ) {
+  ): {
+      matchedActionTokens: string[],
+      matchedObjectTokens: string[],
+      usedIndices: Set<number>,
+      actionObjectScore:number
+  } {
     try {
+
+      const matchedActionTokens = [];
+      const matchedObjectTokens = [];
+      let actionObjectScore = 0;
+
+      // Actions Token.
+      for (const aToken of actionTokens || []) {
+
+        const aStem = this.tokenizeSingleWord(aToken).stemmed;
+
+        for (let i = 0; i < stemmedTokens.length; i++) {
+
+          if (usedTokenIndices.has(i)) continue;
+          const userToken = stemmedTokens[i];
+
+          if (userToken === aStem) {
+            matchedActionTokens.push(aToken);
+            usedTokenIndices.add(i);
+
+            console.log(`Action Match: "${aToken}"`);
+          }
+
+        }
+      }
+
+      // Object Scoring.
+      for (const oToken of objectTokens || []) {
+
+        const oStem = this.tokenizeSingleWord(oToken).stemmed;
+
+        for (let i = 0; i < stemmedTokens.length; i++) {
+
+          if (usedTokenIndices.has(i)) continue;
+          const userToken = stemmedTokens[i];
+
+          if (userToken === oStem) {
+
+            matchedObjectTokens.push(oToken);
+            usedTokenIndices.add(i);
+
+            console.log(`Object Match: "${oToken}"`);
+          }
+
+        }
+      }
+
+      if (matchedActionTokens.length > 0 && matchedObjectTokens.length > 0) {
+
+        actionObjectScore = matchedActionTokens.length * this.SCORES.ACTION_TOKEN + matchedObjectTokens.length * this.SCORES.OBJECT_TOKEN
+          + this.SCORES.SYNERGY_BONUS;
+
+        console.log(`VALID INTENT (Action + Object)`);
+      } else {
+        actionObjectScore = 0;
+        console.log(`Rejected (missing action or object)`);
+      }
+
+      return {
+        matchedActionTokens,
+        matchedObjectTokens,
+        usedIndices: usedTokenIndices,
+        actionObjectScore
+      }
 
     } catch (error) {
       throw error;
