@@ -25,18 +25,20 @@ export class IntentDetectorService {
 
   private scorePhrases(
     phraseTokens: string[],
-    stemmedTokens: string[],
-    usedTokenIndices: Set<number>
+    stemmedTokens: string[]
   ):
     {
       matchedPhraseTokens: string[],
-      score: number,
-      usedTokenIndices: Set<number>
+      phraseScore: number,
+      usedPhraseTokenIndices: Set<number>
     }
     {
     try {
+
       let currScore = 0;
-      const matchedPhraseTokens = []
+      const matchedPhraseTokens = [];
+      let usedTokenIndices = new Set<number>();
+
       for (const phrase of phraseTokens) {
 
         const phraseTokens = this.tokenize(phrase).stemmedTokens;
@@ -55,8 +57,8 @@ export class IntentDetectorService {
           console.log(`   ✅ EXACT PHRASE MATCH: "${phrase}"`);
           return {
             matchedPhraseTokens: phraseTokens,
-            score: this.SCORES.EXACT_PHRASE,
-            usedTokenIndices
+            phraseScore: this.SCORES.EXACT_PHRASE,
+            usedPhraseTokenIndices:usedTokenIndices
           };
         }
 
@@ -69,12 +71,13 @@ export class IntentDetectorService {
 
           console.log(`Partial Phrase: "${phrase}" (+${partialScore.toFixed(2)})`);
         }
+
       }
 
       return {
         matchedPhraseTokens,
-        score:currScore,
-        usedTokenIndices
+        phraseScore:currScore,
+        usedPhraseTokenIndices:usedTokenIndices
       }
 
     } catch (error) {
@@ -101,54 +104,14 @@ export class IntentDetectorService {
       const matchedActions: string[] = [];
       const matchedObjects: string[] = [];
       const matchedFuzzy: string[] = [];
-      const matchedPartial: string[] = [];
 
       console.log(`\n--- 🛡️ Evaluating: ${intent.name} (${intent.id}) ---`);
 
-      // -------------------------
-      // 1. PHRASE MATCHING
-      // -------------------------
-      for (const phrase of intent.phrase_tokens) {
-        const phraseTokens = this.tokenize(phrase).stemmedTokens;
-        let intersectionTokens = 0;
+      // Phrase Matching
+      const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices } = this.scorePhrases(intent.phrase_tokens, stemmedTokens);
+      score += phraseScore;
+      usedPhraseTokenIndices.forEach(index => usedTokenIndices.add(index));
 
-        stemmedTokens.forEach((token, index) => {
-          if (phraseTokens.includes(token)) {
-            intersectionTokens++;
-            usedTokenIndices.add(index);
-          }
-        });
-
-        const matchRatio = intersectionTokens / phraseTokens.length;
-
-        // ✅ Exact phrase
-        if (matchRatio === 1 && phraseTokens.length > 1) {
-          console.log(`   ✅ EXACT PHRASE MATCH: "${phrase}"`);
-          return {
-            id: intent.id,
-            name: intent.name,
-            score: this.SCORES.EXACT_PHRASE,
-            matchedPhrase: phrase
-          };
-        }
-
-        // 🔸 Partial phrase
-        if (matchRatio > 0 && matchRatio < 1 && phraseTokens.length > 2) {
-          const partialScore =
-            this.SCORES.EXACT_PHRASE *
-            matchRatio *
-            this.SCORES.PARTIAL_PHRASE_MULTIPLIER;
-
-          score += partialScore;
-          matchedPartial.push(phrase);
-
-          console.log(
-            `   🔸 Partial Phrase: "${phrase}" (+${partialScore.toFixed(2)})`
-          );
-        }
-      }
-
-      const { } = this.scorePhrases(intent.phrase_tokens, stemmedTokens, usedTokenIndices, score);
 
       // -------------------------
       // 2. ACTION TOKEN MATCHING
