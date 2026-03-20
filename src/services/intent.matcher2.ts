@@ -1,8 +1,8 @@
 import natural from "natural";
 import { tokenize, tokenizeSingleWord } from "./intent.tokenizer";
 import { BestIntent, ReadOnlyIntentDefinition } from "../types/intent.types2";
-
 const getLevenshteinDistance = natural.LevenshteinDistance;
+const stemmer = natural.PorterStemmer.stem;
 
 // Token for DI (NestJS style)
 export const INTENT_DEFINITIONS = "INTENT_DEFINITIONS";
@@ -20,8 +20,64 @@ export class IntentDetectorService {
   };
 
   constructor(
-    private readonly intents: Array<ReadOnlyIntentDefinition>
+    private readonly intents: Array<ReadOnlyIntentDefinition>,
+    private readonly stopWords:Set<string>
   ) {}
+
+  private scorePhrases(stemmedTokens: string[], phraseTokens: string[], usedTokenIndices: Set<number>):
+    {
+      matchedPhrases: string[],
+      score: number,
+      usedTokenIndices: Set<number>
+    }
+    {
+    try {
+
+      for (const phrase of phraseTokens) {
+
+        const phraseTokens = tokenize(phrase).stemmedTokens;
+        let intersectionTokens = 0;
+
+        stemmedTokens.forEach((token, index) => {
+          if (phraseTokens.includes(token)) {
+            intersectionTokens++;
+            usedTokenIndices.add(index);
+          }
+        });
+
+        const matchRatio = intersectionTokens / phraseTokens.length;
+
+        // ✅ Exact phrase
+        if (matchRatio === 1 && phraseTokens.length > 1) {
+          console.log(`   ✅ EXACT PHRASE MATCH: "${phrase}"`);
+          return {
+            id: intent.id,
+            name: intent.name,
+            score: this.SCORES.EXACT_PHRASE,
+            matchedPhrase: phrase
+          };
+        }
+
+        // 🔸 Partial phrase
+        if (matchRatio > 0 && matchRatio < 1 && phraseTokens.length > 2) {
+          const partialScore =
+            this.SCORES.EXACT_PHRASE *
+            matchRatio *
+            this.SCORES.PARTIAL_PHRASE_MULTIPLIER;
+
+          score += partialScore;
+          matchedPartial.push(phrase);
+
+          console.log(
+            `   🔸 Partial Phrase: "${phrase}" (+${partialScore.toFixed(2)})`
+          );
+        }
+      }
+
+    } catch (error) {
+      throw error;
+    }
+  }
 
   /**
    * Main detection entry point
@@ -213,5 +269,42 @@ export class IntentDetectorService {
       objectTokens: [],
       fuzzyTokens: []
     };
+  }
+
+  private tokenize(text: string) {
+    const cleanText = text.toLocaleLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+
+    // Remove duplicates while keeping order
+    const originalTokens: string[] = Array.from(new Set(cleanText));
+
+    const stemmedTokens: string[] = Array.from(
+      new Set(
+        originalTokens
+          .filter(t => !this.stopWords.has(t))
+          .map(t => stemmer(t))
+      )
+    );
+
+    return { originalTokens, stemmedTokens };
+  }
+
+  private tokenizeSingleWord(text: string) {
+    const cleanTokens = text.toLocaleLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (cleanTokens.length === 0) {
+      return { original: text, stemmed: '', isStopWord: false };
+    }
+
+    const originalWord = cleanTokens[0];
+    const isStopWord = this.stopWords.has(originalWord);
+    const stemmedWord = !isStopWord ? stemmer(originalWord) : '';
+
+    return { original: originalWord, stemmed: stemmedWord, isStopWord };
   }
 }
