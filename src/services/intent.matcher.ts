@@ -23,11 +23,11 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
     const matchedFuzzyTokens:Array<string>  = []
     const matchedWeakTokens:Array<string>  = []
     const matchedPartialTokens:Array<string> = []
-    
-    let bestIntent:BestIntent = { 
-      id: "UNKNOWN", 
-      label: "UNKNOWN", 
-      score: 0, 
+
+    let bestIntent:BestIntent = {
+      id: "UNKNOWN",
+      label: "UNKNOWN",
+      score: 0,
       matchedPhrase:"UNKNOWN",
       partialPhrases:[],
       weakTokens:[],
@@ -68,7 +68,7 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
           }
 
         } else if( matchRatio < 1 && matchRatio > 0 && phraseTokens.length > 2 ){
-          score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER ) 
+          score += ( SCORES.EXACT_PHRASE * matchRatio * SCORES.PARTIAL_PHRASE_MULTIPLIER )
           matchedPartialTokens.push(phrase)
         }
 
@@ -152,7 +152,7 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
           strongTokens:matchedStrongTokens,
           fuzzyTokens:matchedFuzzyTokens
         };
-        
+
       }
 
     }
@@ -162,7 +162,7 @@ export function detectIntent(intents: Array<ReadOnlyIntentDefinition>, message: 
       bestIntent.id = "UNKNOWN";
       bestIntent.label = "UNKNOWN"
       return bestIntent;
-      
+
     }
 
     return  bestIntent;

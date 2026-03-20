@@ -16,13 +16,12 @@ export type IntentDefinition = {
 export type ReadOnlyIntentDefinition = Readonly<IntentDefinition>
 
 export type BestIntent = {
-    id: string; 
-    label: string;
-    score: number; 
-    matchedPhrase?:string;
-    partialPhrases?:Array<string>;
-    weakTokens?:Array<string>;
-    strongTokens?:Array<string>;
-    fuzzyTokens?:Array<string>;
+  id: string;
+  label: string;
+  score: number;
+  matchedPhrase?:string;
+  partialPhrases?:Array<string>;
+  weakTokens?:Array<string>;
+  strongTokens?:Array<string>;
+  fuzzyTokens?:Array<string>;
 }
-
