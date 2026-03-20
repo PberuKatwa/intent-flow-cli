@@ -1,10 +1,6 @@
 import natural from "natural";
-import { BestIntent, IntentDefinition, ReadOnlyIntentDefinition } from "../types/intent.types2";
-const getLevenshteinDistance = natural.LevenshteinDistance;
+import { BestIntent, IntentDefinition } from "../types/intent.types2";
 const stemmer = natural.PorterStemmer.stem;
-
-// Token for DI (NestJS style)
-export const INTENT_DEFINITIONS = "INTENT_DEFINITIONS";
 
 export class IntentDetectorService {
 
@@ -190,7 +186,6 @@ export class IntentDetectorService {
       console.log(`\n--- 🛡️ Evaluating: ${intent.name} (${intent.id}) ---`);
 
       // Phrase Matching
-
       if (intent.phrase_tokens) {
 
         const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices } = this.scorePhrases(intent.phrase_tokens, stemmedTokens);
@@ -223,11 +218,9 @@ export class IntentDetectorService {
           objectTokens: matchedObjects,
         };
       }
+
     }
 
-    // -------------------------
-    // 6. FINAL RESULT
-    // -------------------------
     const finalResult =
       bestIntent.score < this.SCORES.MIN_THRESHOLD
         ? this.getInitialBestIntent()
