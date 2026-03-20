@@ -2,6 +2,15 @@ import * as readline from 'readline';
 import chalk from "chalk";
 import { detectIntent } from "./intent.matcher.js";
 import { ReadOnlyIntentDefinition } from "../types/intent.types2.js"
+import { IntentDetectorService } from './intent.matcher2.js';
+// Stop words to filter out
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
+  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+  'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it','for',
+  'my'
+]);
+
 
 class CLiClient {
     private readonly rl: readline.Interface;
@@ -89,7 +98,9 @@ class CLiClient {
 
         if (!text) return;
 
-        const result = detectIntent(this.intents, text);
+        const intentDetector = new IntentDetectorService(this.intents,STOP_WORDS)
+
+        const result = intentDetector.processIntent(text);
 
         console.log(chalk.green('\n  ╭───────────────────────────────────────────────╮'));
         console.log(chalk.green('  │ ') + chalk.bold('🎯 Intent Detection Result') + '                   ' + chalk.green('│'));

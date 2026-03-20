@@ -22,59 +22,86 @@ export class IntentDetectorService {
   private scorePhrases(
     phraseTokens: string[],
     stemmedTokens: string[]
-  ):
-    {
-      matchedPhraseTokens: string[],
-      phraseScore: number,
-      usedPhraseTokenIndices: Set<number>
-    }
-    {
+  ): {
+    matchedPhraseTokens: string[],
+    phraseScore: number,
+    usedPhraseTokenIndices: Set<number>,
+    isExactMatch:boolean
+  } {
     try {
 
+      console.log("\n🔍 [PHRASE SCORING START]");
+      console.log(`   User Tokens: [${stemmedTokens.join(", ")}]`);
+
       let currScore = 0;
-      const matchedPhraseTokens = [];
+      const matchedPhraseTokens: string[] = [];
       let usedTokenIndices = new Set<number>();
 
       for (const phrase of phraseTokens) {
+        const phraseTokenized = this.tokenize(phrase).stemmedTokens;
 
-        const phraseTokens = this.tokenize(phrase).stemmedTokens;
         let intersectionTokens = 0;
+        const matchedIndexes: number[] = [];
 
         stemmedTokens.forEach((token, index) => {
-          if (phraseTokens.includes(token)) {
+          if (phraseTokenized.includes(token)) {
             intersectionTokens++;
             usedTokenIndices.add(index);
+            matchedIndexes.push(index);
           }
         });
 
-        const matchRatio = intersectionTokens / phraseTokens.length;
+        const matchRatio = intersectionTokens / phraseTokenized.length;
 
-        if (matchRatio === 1 && phraseTokens.length > 1) {
-          console.log(`   ✅ EXACT PHRASE MATCH: "${phrase}"`);
+        if (stemmedTokens.length === 1 && matchRatio === 1) {
           return {
-            matchedPhraseTokens: phraseTokens,
+            matchedPhraseTokens: phraseTokenized,
             phraseScore: this.SCORES.EXACT_PHRASE,
-            usedPhraseTokenIndices:usedTokenIndices
+            usedPhraseTokenIndices: usedTokenIndices,
+            isExactMatch:true
+          };
+
+        }
+
+        if (matchRatio === 1 && phraseTokenized.length > 1) {
+
+          return {
+            matchedPhraseTokens: phraseTokenized,
+            phraseScore: this.SCORES.EXACT_PHRASE,
+            usedPhraseTokenIndices: usedTokenIndices,
+            isExactMatch:true
           };
         }
 
-        // Partial phrase
-        if (matchRatio > 0 && matchRatio < 1 && phraseTokens.length > 2) {
-          const partialScore = this.SCORES.EXACT_PHRASE * matchRatio * this.SCORES.PARTIAL_PHRASE_MULTIPLIER;
+        if (matchRatio === 1 && stemmedTokens.length > 1 ) {
+          currScore = this.SCORES.EXACT_PHRASE
+        }
+
+        // 🔸 PARTIAL MATCH
+        if (matchRatio > 0 && phraseTokenized.length > 2) {
+
+          const partialScore =
+            this.SCORES.EXACT_PHRASE *
+            matchRatio *
+            this.SCORES.PARTIAL_PHRASE_MULTIPLIER;
 
           currScore += partialScore;
           matchedPhraseTokens.push(phrase);
-
-          console.log(`Partial Phrase: "${phrase}" (+${partialScore.toFixed(2)})`);
         }
 
       }
 
+      console.log("\n📊 [PHRASE SCORING COMPLETE]");
+      console.log(`   Total Phrase Score: ${currScore.toFixed(2)}`);
+      console.log(`   Matched Phrases: [${matchedPhraseTokens.join(" | ")}]`);
+      console.log(`   Used Indices: [${[...usedTokenIndices].join(", ")}]`);
+
       return {
         matchedPhraseTokens,
-        phraseScore:currScore,
-        usedPhraseTokenIndices:usedTokenIndices
-      }
+        phraseScore: currScore,
+        usedPhraseTokenIndices: usedTokenIndices,
+        isExactMatch:false
+      };
 
     } catch (error) {
       throw error;
@@ -83,79 +110,89 @@ export class IntentDetectorService {
 
   private scoreActionsObjectTokens(
     usedTokenIndices: Set<number>,
-    stemmedTokens:string[],
+    stemmedTokens: string[],
     actionTokens: string[],
     objectTokens: string[],
   ): {
-      matchedActionTokens: string[],
-      matchedObjectTokens: string[],
-      usedIndices: Set<number>,
-      actionObjectScore:number
+    matchedActionTokens: string[],
+    matchedObjectTokens: string[],
+    usedIndices: Set<number>,
+    actionObjectScore: number
   } {
     try {
 
-      const matchedActionTokens = [];
-      const matchedObjectTokens = [];
+      const matchedActionTokens: string[] = [];
+      const matchedObjectTokens: string[] = [];
       let actionObjectScore = 0;
 
-      // Actions Token.
+
       for (const aToken of actionTokens) {
 
         const aStem = this.tokenizeSingleWord(aToken).stemmed;
 
+        let found = false;
+
         for (let i = 0; i < stemmedTokens.length; i++) {
 
           if (usedTokenIndices.has(i)) continue;
+
           const userToken = stemmedTokens[i];
 
           if (userToken === aStem) {
             matchedActionTokens.push(aToken);
             usedTokenIndices.add(i);
-
-            console.log(`Action Match: "${aToken}"`);
+            found = true;
+            break;
           }
-
         }
+
       }
 
-      // Object Scoring.
       for (const oToken of objectTokens) {
 
         const oStem = this.tokenizeSingleWord(oToken).stemmed;
 
+        let found = false;
+
         for (let i = 0; i < stemmedTokens.length; i++) {
 
           if (usedTokenIndices.has(i)) continue;
+
           const userToken = stemmedTokens[i];
 
           if (userToken === oStem) {
-
             matchedObjectTokens.push(oToken);
             usedTokenIndices.add(i);
+            found = true;
 
-            console.log(`Object Match: "${oToken}"`);
+            break;
           }
-
         }
+
       }
 
       if (matchedActionTokens.length > 0 && matchedObjectTokens.length > 0) {
 
-        actionObjectScore = matchedActionTokens.length * this.SCORES.ACTION_TOKEN + matchedObjectTokens.length * this.SCORES.OBJECT_TOKEN
-          + this.SCORES.SYNERGY_BONUS;
+        const actionScore = matchedActionTokens.length * this.SCORES.ACTION_TOKEN;
+        const objectScore = matchedObjectTokens.length * this.SCORES.OBJECT_TOKEN;
 
-        console.log(`VALID INTENT (Action + Object)`);
+        actionObjectScore =
+          actionScore +
+          objectScore +
+          this.SCORES.SYNERGY_BONUS;
+
       } else {
+
         actionObjectScore = 0;
-        console.log(`Rejected (missing action or object)`);
       }
+
 
       return {
         matchedActionTokens,
         matchedObjectTokens,
         usedIndices: usedTokenIndices,
         actionObjectScore
-      }
+      };
 
     } catch (error) {
       throw error;
@@ -188,10 +225,22 @@ export class IntentDetectorService {
       // Phrase Matching
       if (intent.phrase_tokens) {
 
-        const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices } = this.scorePhrases(intent.phrase_tokens, stemmedTokens);
+        const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices, isExactMatch } =
+          this.scorePhrases(intent.phrase_tokens, stemmedTokens);
         score += phraseScore;
         usedPhraseTokenIndices.forEach(index => usedTokenIndices.add(index));
         matchedPhrases = matchedPhraseTokens;
+
+        if (isExactMatch) {
+          return {
+              id: intent.id,
+              name: intent.name,
+              score,
+              phraseTokens: matchedPhrases,
+              actionTokens: matchedActions,
+              objectTokens: matchedObjects,
+          }
+        }
       }
 
       if (intent.action_tokens && intent.object_tokens) {
