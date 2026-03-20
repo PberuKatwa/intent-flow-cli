@@ -1,5 +1,5 @@
 import natural from "natural";
-import { BestIntent, ReadOnlyIntentDefinition } from "../types/intent.types2";
+import { BestIntent, IntentDefinition, ReadOnlyIntentDefinition } from "../types/intent.types2";
 const getLevenshteinDistance = natural.LevenshteinDistance;
 const stemmer = natural.PorterStemmer.stem;
 
@@ -19,7 +19,7 @@ export class IntentDetectorService {
   };
 
   constructor(
-    private readonly intents: Array<ReadOnlyIntentDefinition>,
+    private readonly intents: Array<IntentDefinition>,
     private readonly stopWords:Set<string>
   ) {}
 
@@ -103,7 +103,7 @@ export class IntentDetectorService {
       let actionObjectScore = 0;
 
       // Actions Token.
-      for (const aToken of actionTokens || []) {
+      for (const aToken of actionTokens) {
 
         const aStem = this.tokenizeSingleWord(aToken).stemmed;
 
@@ -123,7 +123,7 @@ export class IntentDetectorService {
       }
 
       // Object Scoring.
-      for (const oToken of objectTokens || []) {
+      for (const oToken of objectTokens) {
 
         const oStem = this.tokenizeSingleWord(oToken).stemmed;
 
@@ -179,110 +179,48 @@ export class IntentDetectorService {
     let bestIntent: BestIntent = this.getInitialBestIntent();
 
     for (const intent of this.intents) {
+
       let score = 0;
       const usedTokenIndices = new Set<number>();
 
-      const matchedActions: string[] = [];
-      const matchedObjects: string[] = [];
-      const matchedFuzzy: string[] = [];
+      let matchedPhrases: string[] = [];
+      let matchedActions: string[] = [];
+      let matchedObjects: string[] = [];
 
       console.log(`\n--- 🛡️ Evaluating: ${intent.name} (${intent.id}) ---`);
 
       // Phrase Matching
-      const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices } = this.scorePhrases(intent.phrase_tokens, stemmedTokens);
-      score += phraseScore;
-      usedPhraseTokenIndices.forEach(index => usedTokenIndices.add(index));
 
+      if (intent.phrase_tokens) {
 
-      // -------------------------
-      // 2. ACTION TOKEN MATCHING
-      // -------------------------
-      for (const aToken of intent.action_tokens || []) {
-        const aStem = this.tokenizeSingleWord(aToken).stemmed;
-
-        for (let i = 0; i < stemmedTokens.length; i++) {
-          if (usedTokenIndices.has(i)) continue;
-
-          const userToken = stemmedTokens[i];
-
-          if (userToken === aStem) {
-            matchedActions.push(aToken);
-            usedTokenIndices.add(i);
-
-            console.log(`   ⚡ Action Match: "${aToken}"`);
-          } else {
-            const distance = getLevenshteinDistance(aStem, userToken);
-
-            if (distance <= 1) {
-              matchedFuzzy.push(aToken);
-              usedTokenIndices.add(i);
-
-              console.log(`   ☁️ Fuzzy Action: "${userToken}" ~ "${aToken}"`);
-            }
-          }
-        }
+        const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices } = this.scorePhrases(intent.phrase_tokens, stemmedTokens);
+        score += phraseScore;
+        usedPhraseTokenIndices.forEach(index => usedTokenIndices.add(index));
+        matchedPhrases = matchedPhraseTokens;
       }
 
-      // -------------------------
-      // 3. OBJECT TOKEN MATCHING
-      // -------------------------
-      for (const oToken of intent.object_tokens || []) {
-        const oStem = this.tokenizeSingleWord(oToken).stemmed;
+      if (intent.action_tokens && intent.object_tokens) {
 
-        for (let i = 0; i < stemmedTokens.length; i++) {
-          if (usedTokenIndices.has(i)) continue;
+        const { matchedActionTokens, matchedObjectTokens, usedIndices, actionObjectScore } =
+          this.scoreActionsObjectTokens(usedTokenIndices, stemmedTokens, intent.action_tokens, intent.object_tokens);
 
-          const userToken = stemmedTokens[i];
-
-          if (userToken === oStem) {
-            matchedObjects.push(oToken);
-            usedTokenIndices.add(i);
-
-            console.log(`   📦 Object Match: "${oToken}"`);
-          } else {
-            const distance = getLevenshteinDistance(oStem, userToken);
-
-            if (distance <= 1) {
-              matchedFuzzy.push(oToken);
-              usedTokenIndices.add(i);
-
-              console.log(`   ☁️ Fuzzy Object: "${userToken}" ~ "${oToken}"`);
-            }
-          }
-        }
+        score += actionObjectScore;
+        usedIndices.forEach(index => usedTokenIndices.add(index));
+        matchedActions = matchedActionTokens;
+        matchedObjects = matchedObjectTokens;
       }
 
-      // -------------------------
-      // 4. STRICT SCORING
-      // -------------------------
-      if (matchedActions.length > 0 && matchedObjects.length > 0) {
-        score =
-          matchedActions.length * this.SCORES.ACTION_TOKEN +
-          matchedObjects.length * this.SCORES.OBJECT_TOKEN +
-          this.SCORES.SYNERGY_BONUS;
 
-        console.log(`   🔥 VALID INTENT (Action + Object)`);
-      } else {
-        score = 0; // 🚨 HARD FILTER
-        console.log(`   ❌ Rejected (missing action or object)`);
-      }
-
-      console.log(`   📊 Score: ${score}`);
-
-      // -------------------------
-      // 5. UPDATE BEST INTENT
-      // -------------------------
       if (score > bestIntent.score) {
-        console.log(`   ⭐ NEW LEADER: ${intent.name}`);
+        console.log(`NEW LEADER: ${intent.name}`);
 
         bestIntent = {
           id: intent.id,
           name: intent.name,
           score,
-          partialPhrases: matchedPartial,
+          phraseTokens: matchedPhrases,
           actionTokens: matchedActions,
           objectTokens: matchedObjects,
-          fuzzyTokens: matchedFuzzy
         };
       }
     }

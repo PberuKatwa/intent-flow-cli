@@ -13,8 +13,8 @@ export type IntentDefinition = {
 
   phrase_tokens: string[];
 
-  action_tokens: readonly string[];
-  object_tokens: readonly string[];
+  action_tokens: string[];
+  object_tokens: string[];
 };
 
 export type ReadOnlyIntentDefinition = Readonly<IntentDefinition>;
