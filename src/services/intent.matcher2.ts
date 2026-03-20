@@ -85,6 +85,19 @@ export class IntentDetectorService {
     }
   }
 
+  private scoreActionsObjectTokens(
+    usedTokenIndices: Set<number>,
+    stemmedTokens:string[],
+    actionTokens: string[],
+    objectTokens: string[],
+  ) {
+    try {
+
+    } catch (error) {
+      throw error;
+    }
+  }
+
   /**
    * Main detection entry point
    */
