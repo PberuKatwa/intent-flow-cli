@@ -9,7 +9,7 @@ function startCli():void{
   try{
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const defaultPath = path.join(__dirname,"files","intent3.json")
+    const defaultPath = path.join(__dirname,"files","intent.json")
     const cliName:string = `INTENT FLOW CLI`;
     const promptMessage:string = `\nEnter your message`;
 

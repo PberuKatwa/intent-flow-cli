@@ -7,7 +7,7 @@ import { logger } from './logger';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const INTENT_FILE_PATH = path.join(__dirname, "..", "files", "intent3.json");
+const INTENT_FILE_PATH = path.join(__dirname, "..", "files", "intent.json");
 
 export function addOrganisationToken(
   targetId: number,
