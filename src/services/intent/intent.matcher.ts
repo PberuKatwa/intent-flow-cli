@@ -5,6 +5,8 @@ import { buildIntentPrompt } from "../../utils/build.prompt";
 import { addOrganisationToken } from "../../utils/json.utils";
 const stemmer = natural.PorterStemmer.stem;
 
+import nlp from "compromise";
+
 export class IntentDetectorService {
 
   private readonly SCORES = {
