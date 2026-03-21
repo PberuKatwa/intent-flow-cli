@@ -1,5 +1,6 @@
 import natural from "natural";
 import { BestIntent, IntentDefinition } from "../../types/intent.types3";
+import GeminiChatService from "../gemini.service";
 const stemmer = natural.PorterStemmer.stem;
 
 export class IntentDetectorService {
@@ -16,8 +17,25 @@ export class IntentDetectorService {
 
   constructor(
     private readonly intents: Array<IntentDefinition>,
-    private readonly stopWords:Set<string>
-  ) {}
+    private readonly stopWords: Set<string>,
+    private readonly geminiService:GeminiChatService
+  ) { }
+
+  public async getFinalIntent(userMessage:string):Promise<BestIntent> {
+    try {
+
+      let intent = this.processIntent(userMessage);
+
+      if (intent.name === "UNKNOWN") {
+        intent = await this.geminiService.basicPrompt()
+      }
+
+      return intent
+
+    } catch (error) {
+      throw error
+    }
+  }
 
   private scoreTokens(
     usedTokenIndices:Set<number>,
@@ -129,7 +147,8 @@ export class IntentDetectorService {
             id: intent.id,
             name: intent.name,
             entity: intent.entity || "UNKNOWN",
-            description:intent.description,
+            description: intent.description,
+            userMessage:message,
             score,
             organisation_tokens: matchedOrganisationTokens,
             phrase_tokens: matchedPhraseTokens
@@ -151,6 +170,7 @@ export class IntentDetectorService {
           return {
             id: intent.id,
             name: intent.name,
+            userMessage:message,
             entity: intent.entity || "UNKNOWN",
             description:intent.description,
             score,
@@ -166,6 +186,7 @@ export class IntentDetectorService {
         bestIntent = {
           id: intent.id,
           name: intent.name,
+          userMessage:message,
           description: intent.description,
           entity:intent.entity || "UNKNOWN",
           score,
@@ -193,8 +214,9 @@ export class IntentDetectorService {
   private getInitialBestIntent(): BestIntent {
     return {
       id: 0,
-      name: "",
-      description: "",
+      name: "UNKNOWN",
+      description: "UNKNOWN",
+      userMessage:"UNKNOWN",
       entity:"UNKNOWN",
       score:0,
       organisation_tokens: [],

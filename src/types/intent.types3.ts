@@ -18,6 +18,7 @@ export type BestIntent = {
   id: number;
   name: string;
   description: string;
+  userMessage: string;
   entity: string;
   score: number;
 
