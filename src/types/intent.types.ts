@@ -1,27 +1,27 @@
-export enum IntentType{
-    UNKNOWN = 0,
-    MAKE_ORDER = 1,
-    TRACK_ORDER = 2,
-    PAY_FOR_ORDER = 3,
-}
-
 export type IntentDefinition = {
-    id:string;
-    label:string;
-    phrases:Array < string >;
-    strongTokens: readonly string[];
-    weakTokens:readonly string[];
-}
+  id: number;
+  organization_type: string | null;
 
-export type ReadOnlyIntentDefinition = Readonly<IntentDefinition>
+  name: string;
+  description: string;
+
+  entity: string | null;
+  category: string;
+
+  organisation_tokens: string[];
+  phrase_tokens: string[];
+};
+
+export type ReadOnlyIntentDefinition = Readonly<IntentDefinition>;
 
 export type BestIntent = {
-  id: string;
-  label: string;
+  id: number;
+  name: string;
+  description: string;
+  userMessage: string;
+  entity: string;
   score: number;
-  matchedPhrase?:string;
-  partialPhrases?:Array<string>;
-  weakTokens?:Array<string>;
-  strongTokens?:Array<string>;
-  fuzzyTokens?:Array<string>;
-}
+
+  phrase_tokens?: string[];
+  organisation_tokens?: string[];
+};

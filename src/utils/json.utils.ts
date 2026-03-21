@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { IntentFileSchema } from '../validators/intent3.schema';
+import { IntentFileSchema } from '../validators/intent.schema';
 import { logger } from './logger';
 
 const __filename = fileURLToPath(import.meta.url);

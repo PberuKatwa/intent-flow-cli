@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { BestIntent } from '../types/intent.types3';
+import { BestIntent } from '../types/intent.types';
 import { BestIntentSchema } from '../validators/bestIntent.schema';
 import { logger } from '../utils/logger';
 

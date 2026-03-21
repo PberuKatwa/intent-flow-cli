@@ -1,5 +1,5 @@
 import natural from "natural";
-import { BestIntent, IntentDefinition } from "../../types/intent.types3";
+import { BestIntent, IntentDefinition } from "../../types/intent.types";
 import GeminiChatService from "../gemini.service";
 import { buildIntentPrompt } from "../../utils/build.prompt";
 import { addOrganisationToken } from "../../utils/json.utils";

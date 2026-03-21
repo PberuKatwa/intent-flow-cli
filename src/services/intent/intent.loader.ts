@@ -1,6 +1,6 @@
 import fs from "fs";
-import { IntentFileSchema } from "../../validators/intent3.schema";
-import { IntentDefinition } from "../../types/intent.types3";
+import { IntentFileSchema } from "../../validators/intent.schema";
+import { IntentDefinition } from "../../types/intent.types";
 import { logger } from "../../utils/logger";
 
 function normalizeArray(arr: string[]): string[] {

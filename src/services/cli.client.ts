@@ -1,6 +1,6 @@
 import * as readline from 'readline';
 import chalk from "chalk";
-import { ReadOnlyIntentDefinition } from "../types/intent.types3.js"
+import { ReadOnlyIntentDefinition } from "../types/intent.types.js"
 import { IntentDetectorService } from './intent/intent.matcher.js';
 import GeminiChatService from './gemini.service.js';
 
