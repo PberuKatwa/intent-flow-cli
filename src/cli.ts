@@ -6,27 +6,25 @@ import { loadIntentsFromFile } from './services/intent/intent.loader'
 import CliClient from "./services/cli.client"
 
 function startCli():void{
-    try{
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = dirname(__filename);
-        const defaultPath = path.join(__dirname,"files","intent3.json")
-        const cliName:string = `INTENT FLOW CLI`;
-        const promptMessage:string = `\nEnter your message`;
+  try{
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const defaultPath = path.join(__dirname,"files","intent3.json")
+    const cliName:string = `INTENT FLOW CLI`;
+    const promptMessage:string = `\nEnter your message`;
 
-        const intent = loadIntentsFromFile(defaultPath)
-        const client = new CliClient( promptMessage ,cliName ,intent )
+    const intent = loadIntentsFromFile(defaultPath);
+    const client = new CliClient(promptMessage, cliName, intent);
 
-        return client.start()
+    return client.start()
 
-    }catch(error:any){
+  }catch(error:any){
 
-        logger.error(`Error in starting cli`,{
-            errorMessage:error.message,
-            errorStack:error.stack
-        })
-
-    }
-
+    logger.error(`Error in starting cli`,{
+      errorMessage:error.message,
+      errorStack:error.stack
+    })
+  }
 }
 
 startCli()

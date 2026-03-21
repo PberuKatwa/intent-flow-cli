@@ -1,9 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { IntentFileSchema } from '../validators/intent3.schema';
 import { logger } from './logger';
 
-const INTENT_FILE_PATH = path.join(__dirname, "files", "intent3.json");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const INTENT_FILE_PATH = path.join(__dirname, "..", "files", "intent3.json");
 
 export function addOrganisationToken(
   targetId: number,
