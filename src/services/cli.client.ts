@@ -1,6 +1,5 @@
 import * as readline from 'readline';
 import chalk from "chalk";
-import { detectIntent } from "./intent.matcher.js";
 import { ReadOnlyIntentDefinition } from "../types/intent.types3.js"
 import { IntentDetectorService } from './intent/intent.matcher.js';
 import GeminiChatService from './gemini.service.js';
@@ -100,32 +99,32 @@ class CLiClient {
 
     private handleInput(text: string): void {
 
-        if (!text) return;
+      if (!text) return;
 
       const intentDetector = new IntentDetectorService(this.intents, STOP_WORDS, geminiService);
 
-        const result = intentDetector.processIntent(text);
+      const result = intentDetector.processIntent(text);
 
-        console.log(chalk.green('\n  ╭───────────────────────────────────────────────╮'));
-        console.log(chalk.green('  │ ') + chalk.bold('🎯 Intent Detection Result') + '                   ' + chalk.green('│'));
-        console.log(chalk.green('  ╰───────────────────────────────────────────────╯\n'));
+      console.log(chalk.green('\n  ╭───────────────────────────────────────────────╮'));
+      console.log(chalk.green('  │ ') + chalk.bold('🎯 Intent Detection Result') + '                   ' + chalk.green('│'));
+      console.log(chalk.green('  ╰───────────────────────────────────────────────╯\n'));
 
-        console.log(chalk.dim(`    Intent: ${chalk.cyan.bold(result.name)} (${result.id})`));
-        console.log(chalk.dim(`    Score:  ${chalk.yellow(result.score.toString())}\n`));
+      console.log(chalk.dim(`    Intent: ${chalk.cyan.bold(result.name)} (${result.id})`));
+      console.log(chalk.dim(`    Score:  ${chalk.yellow(result.score.toString())}\n`));
 
-        console.log(chalk.dim('    Full Response:'));
-        console.log(chalk.dim('    ┌──────────────────────────────────────────'));
+      console.log(chalk.dim('    Full Response:'));
+      console.log(chalk.dim('    ┌──────────────────────────────────────────'));
 
-        const jsonStr = JSON.stringify(result, null, 2);
-        jsonStr.split('\n').forEach(line => {
-            console.log(chalk.dim('    │ ') + chalk.cyan(line));
-        });
+      const jsonStr = JSON.stringify(result, null, 2);
+      jsonStr.split('\n').forEach(line => {
+          console.log(chalk.dim('    │ ') + chalk.cyan(line));
+      });
 
-        console.log(chalk.dim('    └──────────────────────────────────────────\n'));
+      console.log(chalk.dim('    └──────────────────────────────────────────\n'));
     }
 
     public start(): void {
-        this.displayWelcome();
+      this.displayWelcome();
     }
 }
 
