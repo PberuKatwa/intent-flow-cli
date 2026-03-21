@@ -244,31 +244,6 @@ export class IntentDetectorService {
 
       console.log(`\n--- 🛡️ Evaluating: ${intent.name} (${intent.id}) ---`);
 
-      // Phrase Matching
-      if (intent.phrase_tokens) {
-
-        const { matchedTokens, phraseScore, usedIndices, isExactMatch } =
-          this.scoreTokensInverted(usedTokenIndices,intent.phrase_tokens, stemmedTokens);
-
-        console.log("PHRASEEEEEEEEEE", matchedTokens, phraseScore, usedIndices, isExactMatch)
-        score += phraseScore;
-        usedIndices.forEach(index => usedTokenIndices.add(index));
-        matchedPhraseTokens = matchedTokens;
-
-        if (isExactMatch) {
-          return {
-            id: intent.id,
-            name: intent.name,
-            userMessage:message,
-            entity: intent.entity || "UNKNOWN",
-            description:intent.description,
-            score,
-            organisation_tokens: matchedOrganisationTokens,
-            phrase_tokens: matchedPhraseTokens
-          }
-        }
-      }
-
       // Organisation Token Matching
       if (intent.organisation_tokens) {
 
@@ -276,10 +251,6 @@ export class IntentDetectorService {
           this.scoreTokensInverted(usedTokenIndices,intent.organisation_tokens, stemmedTokens);
 
         console.log("founddddd organisationnn", matchedTokens, phraseScore, usedIndices, isExactMatch)
-
-        score += phraseScore;
-        usedIndices.forEach(index => usedTokenIndices.add(index));
-        matchedPhraseTokens = matchedTokens;
 
         if (isExactMatch) {
           return {
@@ -293,7 +264,39 @@ export class IntentDetectorService {
             phrase_tokens: matchedPhraseTokens
           }
         }
+
+        score += phraseScore;
+        usedIndices.forEach(index => usedTokenIndices.add(index));
+        matchedPhraseTokens = matchedTokens;
       }
+
+      // Phrase Matching
+      if (intent.phrase_tokens) {
+
+        const { matchedTokens, phraseScore, usedIndices, isExactMatch } =
+          this.scoreTokensInverted(usedTokenIndices,intent.phrase_tokens, stemmedTokens);
+
+        console.log("PHRASEEEEEEEEEE", matchedTokens, phraseScore, usedIndices, isExactMatch)
+
+        if (isExactMatch) {
+          return {
+            id: intent.id,
+            name: intent.name,
+            userMessage:message,
+            entity: intent.entity || "UNKNOWN",
+            description:intent.description,
+            score,
+            organisation_tokens: matchedOrganisationTokens,
+            phrase_tokens: matchedPhraseTokens
+          }
+        }
+
+        score += phraseScore;
+        usedIndices.forEach(index => usedTokenIndices.add(index));
+        matchedPhraseTokens = matchedTokens;
+      }
+
+
 
       if (score > bestIntent.score) {
         console.log(`NEW LEADER: ${intent.name}`, bestIntent);
