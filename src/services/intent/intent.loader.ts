@@ -4,7 +4,6 @@ import { IntentFileSchema } from "../../validators/intent3.schema";
 import { IntentDefinition } from "../../types/intent.types3";
 import { logger } from "../../utils/logger";
 
-// remove duplicates, trim, lowercase
 function normalizeArray(arr: string[]): string[] {
   return [...new Set(arr.map(v => v.trim().toLowerCase()))];
 }
