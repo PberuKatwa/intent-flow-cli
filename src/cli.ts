@@ -2,14 +2,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { logger } from './utils/logger';
-import { loadIntentsFromFile } from './services/intent.loader2'
+import { loadIntentsFromFile } from './services/intent/intent.loader'
 import CliClient from "./services/cli.client"
 
 function startCli():void{
     try{
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = dirname(__filename);
-        const defaultPath = path.join(__dirname,"files","updateIntent.json")
+        const defaultPath = path.join(__dirname,"files","intent3.json")
         const cliName:string = `INTENT FLOW CLI`;
         const promptMessage:string = `\nEnter your message`;
 

@@ -2,6 +2,7 @@ import natural from "natural";
 import { BestIntent, IntentDefinition } from "../../types/intent.types3";
 import GeminiChatService from "../gemini.service";
 import { buildIntentPrompt } from "../../utils/build.prompt";
+import { addOrganisationToken } from "../../utils/json.utils";
 const stemmer = natural.PorterStemmer.stem;
 
 export class IntentDetectorService {
@@ -26,6 +27,8 @@ export class IntentDetectorService {
       if (intent.name === "UNKNOWN") {
         const prompt = buildIntentPrompt(userMessage)
         intent = await this.geminiService.getLlmIntent(prompt);
+
+        addOrganisationToken(intent.id, intent.userMessage);
       };
 
       return intent;

@@ -1,15 +1,19 @@
 import * as readline from 'readline';
 import chalk from "chalk";
 import { detectIntent } from "./intent.matcher.js";
-import { ReadOnlyIntentDefinition } from "../types/intent.types2.js"
-import { IntentDetectorService } from './intent.matcher2.js';
-// Stop words to filter out
+import { ReadOnlyIntentDefinition } from "../types/intent.types3.js"
+import { IntentDetectorService } from './intent/intent.matcher.js';
+import GeminiChatService from './gemini.service.js';
+
 const STOP_WORDS = new Set([
   'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
   'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
   'could', 'should', 'may', 'might', 'can', 'i', 'you', 'it','for',
   'my'
 ]);
+
+const geminiKey = process.env.GEMINI_TOKEN ? process.env.GEMINI_TOKEN : "";
+const geminiService = new GeminiChatService(geminiKey)
 
 
 class CLiClient {
@@ -19,40 +23,40 @@ class CLiClient {
 
     constructor(promptMessage: string, cliName: string, intents: ReadOnlyIntentDefinition[]) {
 
-        this.rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-            prompt: chalk.cyan.bold(`${promptMessage} ❯ `)
-        });
+      this.rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        prompt: chalk.cyan.bold(`${promptMessage} ❯ `)
+      });
 
-        this.cliName = cliName;
-        this.intents = intents;
+      this.cliName = cliName;
+      this.intents = intents;
 
-        this.registerListeners();
+      this.registerListeners();
     }
 
     private close(): void {
-        console.log(chalk.yellow('\n╭─────────────────────────────────────╮'));
-        console.log(chalk.yellow('│ ') + chalk.white('Shutting down gracefully... 👋     ') + chalk.yellow('│'));
-        console.log(chalk.yellow('╰─────────────────────────────────────╯'));
-        console.log(chalk.dim(`  Thanks for using ${chalk.cyan.bold(this.cliName)}!\n`));
+      console.log(chalk.yellow('\n╭─────────────────────────────────────╮'));
+      console.log(chalk.yellow('│ ') + chalk.white('Shutting down gracefully... 👋     ') + chalk.yellow('│'));
+      console.log(chalk.yellow('╰─────────────────────────────────────╯'));
+      console.log(chalk.dim(`  Thanks for using ${chalk.cyan.bold(this.cliName)}!\n`));
 
-        this.rl.close();
-        process.exit(0);
+      this.rl.close();
+      process.exit(0);
     }
 
     private registerListeners(): void {
 
-        this.rl.on("line", (input: string) => {
-            const trimmed = input.trim();
+      this.rl.on("line", (input: string) => {
+        const trimmed = input.trim();
 
-            if (trimmed === "exit") return this.close();
+        if (trimmed === "exit") return this.close();
 
-            this.handleInput(trimmed);
-            this.rl.prompt();
-        });
+        this.handleInput(trimmed);
+        this.rl.prompt();
+      });
 
-        this.rl.on("SIGINT", () => this.close());
+      this.rl.on("SIGINT", () => this.close());
     }
 
     private displayWelcome(): void {
@@ -98,7 +102,7 @@ class CLiClient {
 
         if (!text) return;
 
-        const intentDetector = new IntentDetectorService(this.intents,STOP_WORDS)
+      const intentDetector = new IntentDetectorService(this.intents, STOP_WORDS, geminiService);
 
         const result = intentDetector.processIntent(text);
 

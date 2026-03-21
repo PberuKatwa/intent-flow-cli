@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import { IntentFileSchema } from "../../validators/intent3.schema";
 import { IntentDefinition } from "../../types/intent.types3";
 import { logger } from "../../utils/logger";
