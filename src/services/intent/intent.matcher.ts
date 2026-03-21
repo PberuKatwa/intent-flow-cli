@@ -114,6 +114,29 @@ export class IntentDetectorService {
 
       console.log(`\n--- 🛡️ Evaluating: ${intent.name} (${intent.id}) ---`);
 
+      // Organisation Token Matching
+      if (intent.organisation_tokens) {
+
+        const { matchedTokens, phraseScore, usedIndices, isExactMatch } =
+          this.scoreTokens(usedTokenIndices,intent.organisation_tokens, stemmedTokens);
+
+        score += phraseScore;
+        usedIndices.forEach(index => usedTokenIndices.add(index));
+        matchedPhraseTokens = matchedTokens;
+
+        if (isExactMatch) {
+          return {
+            id: intent.id,
+            name: intent.name,
+            entity: intent.entity || "UNKNOWN",
+            description:intent.description,
+            score,
+            organisation_tokens: matchedOrganisationTokens,
+            phrase_tokens: matchedPhraseTokens
+          }
+        }
+      }
+
       // Phrase Matching
       if (intent.phrase_tokens) {
 
