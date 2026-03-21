@@ -259,15 +259,15 @@ export class IntentDetectorService {
             entity: intent.entity || "UNKNOWN",
             description: intent.description,
             userMessage:message,
-            score,
-            organisation_tokens: matchedOrganisationTokens,
-            phrase_tokens: matchedPhraseTokens
+            score:phraseScore,
+            organisation_tokens: matchedTokens,
+            phrase_tokens: []
           }
         }
 
         score += phraseScore;
         usedIndices.forEach(index => usedTokenIndices.add(index));
-        matchedPhraseTokens = matchedTokens;
+        matchedOrganisationTokens = matchedTokens;
       }
 
       // Phrase Matching
@@ -285,9 +285,9 @@ export class IntentDetectorService {
             userMessage:message,
             entity: intent.entity || "UNKNOWN",
             description:intent.description,
-            score,
-            organisation_tokens: matchedOrganisationTokens,
-            phrase_tokens: matchedPhraseTokens
+            score:phraseScore,
+            organisation_tokens: [],
+            phrase_tokens: matchedTokens
           }
         }
 
