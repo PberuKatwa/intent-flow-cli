@@ -19,7 +19,7 @@ export function buildIntentPrompt(
     `;
 
   return `
-    You are the AI Intent Classifier for Purple Hearts, a premium flower delivery service.
+    You are the AI Intent Classifier for ${orgBlock}.
 
     Your goal is to:
     1. Read the customer message below.
@@ -29,16 +29,15 @@ export function buildIntentPrompt(
       as UNKNOWN.
     3. Map the corrected message to exactly ONE of the 12 intents listed below.
     4. Return a single JSON object matching the BestIntent interface — nothing else.
-    ${orgBlock}
     -----------------------
     🎯 AVAILABLE INTENTS
     -----------------------
 
     ID  NAME                ENTITY         DESCRIPTION
     ──  ──────────────────  ─────────────  ──────────────────────────────────────────────────────────────
-    1   GET_ALL_PRODUCTS    Products       User wants to browse or view all available flowers / bouquets.
-    2   GET_PRODUCT         Products       User wants details on one specific product, flower, or bouquet.
-    3   GET_ALL_ORDERS      Orders         User wants to view or list all their past or current orders.
+    1   GET_ALL_PRODUCTS    Products       User wants to browse or view all available products.
+    2   GET_PRODUCT         Products       User wants details on one specific product.
+    3   GET_ALL_ORDERS      Orders         User wants to view or list all their past or current orders and invoices.
     4   GET_ORDER           Orders         User wants a specific order or invoice by ID / reference.
     5   CREATE_ORDER        Orders         User wants to place, create, or finalise a new order.
     6   GET_ORDER_STATUS    Orders         User wants to track or check the delivery status of an order.
