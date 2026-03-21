@@ -1,28 +1,30 @@
 import { GoogleGenAI } from '@google/genai';
+import { BestIntent } from '../types/intent.types3';
+import { BestIntentSchema } from '../validators/bestIntent.schema';
+import { logger } from '../utils/logger';
 
 class GeminiChatService {
 
   private readonly client: GoogleGenAI;
-  private readonly prompt: string;
 
   constructor(
-    apiKey: string,
-    prompt:string
+    apiKey: string
   ) {
-    this.client = new GoogleGenAI({ apiKey }),
-    this.prompt = prompt;
+    this.client = new GoogleGenAI({ apiKey });
   }
 
-  async basicPrompt(model: string = "gemini-2.5-flash"): Promise<string> {
+  async basicPrompt(prompt: string, model: string = "gemini-2.5-flash"): Promise<string> {
     try {
-      if (!this.prompt.trim()) {
+      if (!prompt.trim()) {
         throw new Error("runPrompt: prompt cannot be empty");
       }
+
+      logger.warn(`Attempting to use gemini to detect intent`);
 
       const response = await this.client.models.generateContent({
         model,
         contents: [
-          { role: "user", parts: [{ text: this.prompt }] }
+          { role: "user", parts: [{ text: prompt }] }
         ],
       });
 
@@ -36,6 +38,21 @@ class GeminiChatService {
     } catch (err: any) {
       throw new Error(`GeminiChatService Error: ${err.message}`);
     }
+  }
+
+  public async getLlmIntent(prompt: string): Promise<BestIntent> {
+    try {
+
+      const response = await this.basicPrompt(prompt)
+
+      const validatedResponse = BestIntentSchema.parse(response);
+      logger.info(`Successfully validated ai reponse`)
+
+      return validatedResponse;
+    } catch (error) {
+      throw error
+    }
+
   }
 }
 

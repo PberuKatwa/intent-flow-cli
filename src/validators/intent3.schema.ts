@@ -10,7 +10,6 @@ export const IntentSchema = z.object({
   category: z.string().min(1),
 
   organisation_tokens: z.array(z.string().min(1)).min(1),
-
   phrase_tokens: z.array(z.string().min(1)).min(1),
 });
 

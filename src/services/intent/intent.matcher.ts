@@ -1,6 +1,7 @@
 import natural from "natural";
 import { BestIntent, IntentDefinition } from "../../types/intent.types3";
 import GeminiChatService from "../gemini.service";
+import { buildIntentPrompt } from "../../utils/build.prompt";
 const stemmer = natural.PorterStemmer.stem;
 
 export class IntentDetectorService {
@@ -24,14 +25,14 @@ export class IntentDetectorService {
   public async getFinalIntent(userMessage:string):Promise<BestIntent> {
     try {
 
-      let intent = this.processIntent(userMessage);
+      let intent:BestIntent = this.processIntent(userMessage);
 
       if (intent.name === "UNKNOWN") {
-        intent = await this.geminiService.basicPrompt()
+        const prompt = buildIntentPrompt(userMessage)
+        intent = await this.geminiService.getLlmIntent(prompt);
       }
 
       return intent
-
     } catch (error) {
       throw error
     }
