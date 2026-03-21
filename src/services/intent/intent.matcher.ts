@@ -8,12 +8,8 @@ export class IntentDetectorService {
 
   private readonly SCORES = {
     EXACT_PHRASE: 10,
-    ACTION_TOKEN: 4,
-    OBJECT_TOKEN: 2,
-    FUZZY_MATCH: 1.5,
-    MIN_THRESHOLD: 4,
+    MIN_THRESHOLD: 6,
     PARTIAL_PHRASE_MULTIPLIER: 0.5,
-    SYNERGY_BONUS: 2
   };
 
   constructor(
@@ -30,9 +26,9 @@ export class IntentDetectorService {
       if (intent.name === "UNKNOWN") {
         const prompt = buildIntentPrompt(userMessage)
         intent = await this.geminiService.getLlmIntent(prompt);
-      }
+      };
 
-      return intent
+      return intent;
     } catch (error) {
       throw error
     }
@@ -49,6 +45,7 @@ export class IntentDetectorService {
     isExactMatch: boolean
   } {
     try {
+
       let currScore = 0;
       const matchedTokens: string[] = [];
 
