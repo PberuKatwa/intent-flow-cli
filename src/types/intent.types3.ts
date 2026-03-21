@@ -17,9 +17,10 @@ export type ReadOnlyIntentDefinition = Readonly<IntentDefinition>;
 export type BestIntent = {
   id: number;
   name: string;
+  description: string;
+  entity: string;
   score: number;
 
   phrase_tokens?: string[];
   organisation_tokens?: string[];
-  fuzzy_tokens?: string[];
 };
