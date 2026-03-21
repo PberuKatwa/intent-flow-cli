@@ -211,6 +211,7 @@ export class IntentDetectorService {
 
         const { matchedPhraseTokens, phraseScore, usedPhraseTokenIndices, isExactMatch } =
           this.scorePhrases(intent.phrase_tokens, stemmedTokens);
+
         score += phraseScore;
         usedPhraseTokenIndices.forEach(index => usedTokenIndices.add(index));
         matchedPhrases = matchedPhraseTokens;
