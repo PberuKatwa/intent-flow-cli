@@ -97,13 +97,13 @@ class CLiClient {
         this.rl.prompt();
     }
 
-    private handleInput(text: string): void {
+    private async handleInput(text: string): Promise<void> {
 
       if (!text) return;
 
       const intentDetector = new IntentDetectorService(this.intents, STOP_WORDS, geminiService);
 
-      const result = intentDetector.processIntent(text);
+      const result = await intentDetector.getFinalIntent(text);
 
       console.log(chalk.green('\n  ╭───────────────────────────────────────────────╮'));
       console.log(chalk.green('  │ ') + chalk.bold('🎯 Intent Detection Result') + '                   ' + chalk.green('│'));

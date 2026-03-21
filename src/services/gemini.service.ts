@@ -42,17 +42,20 @@ class GeminiChatService {
 
   public async getLlmIntent(prompt: string): Promise<BestIntent> {
     try {
+      const rawResponse = await this.basicPrompt(prompt);
 
-      const response = await this.basicPrompt(prompt)
+      const cleanJson = rawResponse.replace(/```json|```/g, "").trim();
+      const jsonObject = JSON.parse(cleanJson);
 
-      const validatedResponse = BestIntentSchema.parse(response);
-      logger.info(`Successfully validated ai reponse`)
+      const validatedResponse = BestIntentSchema.parse(jsonObject);
+
+      logger.info(`Successfully validated ai response`);
 
       return validatedResponse;
-    } catch (error) {
-      throw error
+    } catch (error: any) {
+      logger.error(`Validation/Parsing Error: ${error.message}`);
+      throw error;
     }
-
   }
 }
 

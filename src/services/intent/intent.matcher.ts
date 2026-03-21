@@ -133,11 +133,38 @@ export class IntentDetectorService {
 
       console.log(`\n--- 🛡️ Evaluating: ${intent.name} (${intent.id}) ---`);
 
+      // Phrase Matching
+      if (intent.phrase_tokens) {
+
+        const { matchedTokens, phraseScore, usedIndices, isExactMatch } =
+          this.scoreTokens(usedTokenIndices,intent.phrase_tokens, stemmedTokens);
+
+        console.log("PHRASEEEEEEEEEE", matchedTokens, phraseScore, usedIndices, isExactMatch)
+        score += phraseScore;
+        usedIndices.forEach(index => usedTokenIndices.add(index));
+        matchedPhraseTokens = matchedTokens;
+
+        if (isExactMatch) {
+          return {
+            id: intent.id,
+            name: intent.name,
+            userMessage:message,
+            entity: intent.entity || "UNKNOWN",
+            description:intent.description,
+            score,
+            organisation_tokens: matchedOrganisationTokens,
+            phrase_tokens: matchedPhraseTokens
+          }
+        }
+      }
+
       // Organisation Token Matching
       if (intent.organisation_tokens) {
 
         const { matchedTokens, phraseScore, usedIndices, isExactMatch } =
           this.scoreTokens(usedTokenIndices,intent.organisation_tokens, stemmedTokens);
+
+        console.log("founddddd organisationnn", matchedTokens, phraseScore, usedIndices, isExactMatch)
 
         score += phraseScore;
         usedIndices.forEach(index => usedTokenIndices.add(index));
@@ -150,30 +177,6 @@ export class IntentDetectorService {
             entity: intent.entity || "UNKNOWN",
             description: intent.description,
             userMessage:message,
-            score,
-            organisation_tokens: matchedOrganisationTokens,
-            phrase_tokens: matchedPhraseTokens
-          }
-        }
-      }
-
-      // Phrase Matching
-      if (intent.phrase_tokens) {
-
-        const { matchedTokens, phraseScore, usedIndices, isExactMatch } =
-          this.scoreTokens(usedTokenIndices,intent.phrase_tokens, stemmedTokens);
-
-        score += phraseScore;
-        usedIndices.forEach(index => usedTokenIndices.add(index));
-        matchedPhraseTokens = matchedTokens;
-
-        if (isExactMatch) {
-          return {
-            id: intent.id,
-            name: intent.name,
-            userMessage:message,
-            entity: intent.entity || "UNKNOWN",
-            description:intent.description,
             score,
             organisation_tokens: matchedOrganisationTokens,
             phrase_tokens: matchedPhraseTokens
