@@ -10,45 +10,43 @@ function normalizeArray(arr: string[]): string[] {
 }
 
 export function loadIntentsFromFile(filePath:string):IntentDefinition[]{
-    try{
+  try{
 
-        if( !fs.existsSync( filePath ) ) throw new Error(`Intent File path doesnt exist`);
+    if( !fs.existsSync( filePath ) ) throw new Error(`Intent File path doesnt exist`);
 
-        if( !fs.statSync(filePath).isFile() ) throw new Error(`File path exists but no file was found`)
+    if( !fs.statSync(filePath).isFile() ) throw new Error(`File path exists but no file was found`)
 
-        const rawJson = fs.readFileSync( filePath, "utf-8" )
-        const json = JSON.parse(rawJson)
+    const rawJson = fs.readFileSync( filePath, "utf-8" )
+    const json = JSON.parse(rawJson)
 
-        const parsed = IntentFileSchema.parse(json)
-        logger.info(`Successfully parsed file`)
+    const parsed = IntentFileSchema.parse(json)
+    logger.info(`Successfully parsed file`)
 
-        const validatedOutput = parsed.intents.map(
-            function(intent){
+    const validatedOutput = parsed.intents.map(
+      function(intent){
 
-                const fileOutput:IntentDefinition = {
-                  id: intent.id,
-                  organization_id: intent.organization_id,
-                  organization_activity: intent.organization_activity,
-                  organization_type: intent.organization_type,
-                  description: intent.description,
-                  entity: intent.entity,
-                  category:intent.category,
-                  name:intent.name,
-                  phrase_tokens:normalizeArray(intent.phrase_tokens),
-                  action_tokens:normalizeArray(intent.action_tokens),
-                  object_tokens:normalizeArray(intent.object_tokens)
-                }
+        const fileOutput:IntentDefinition = {
+          id: intent.id,
+          organization_id: intent.organization_id,
+          organization_activity: intent.organization_activity,
+          organization_type: intent.organization_type,
+          description: intent.description,
+          entity: intent.entity,
+          category:intent.category,
+          name:intent.name,
+          phrase_tokens:normalizeArray(intent.phrase_tokens),
+          action_tokens:normalizeArray(intent.action_tokens),
+          object_tokens:normalizeArray(intent.object_tokens)
+        }
 
-                return fileOutput
-            }
-        )
+        return fileOutput
+      }
+    )
 
 
-        return validatedOutput
+    return validatedOutput
 
-    }catch(error){
-
-        throw error
-
-    }
+  }catch(error){
+    throw error;
+  }
 }
